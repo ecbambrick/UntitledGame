@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="32" height="12" tilewidth="16" tileheight="16">
+ <tileset firstgid="1" name="custom" tilewidth="16" tileheight="16" spacing="1" margin="1">
+  <image source="custom_tiles.gif" width="256" height="103"/>
+ </tileset>
+ <tileset firstgid="91" name="markers" tilewidth="16" tileheight="16" spacing="1" margin="1">
+  <image source="tilemarkers.gif" width="35" height="35"/>
+  <tile id="0">
+   <properties>
+    <property name="type" value="oneway"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer name="background" width="32" height="12">
+  <data encoding="base64" compression="zlib">
+   eJzFkoEJwCAMBNN2Ae0CpnQO91+rChFCiFFE7cFjIOr7qgcAv1iS1X6afyRJf5d0JSHVQHVIOmjkPQ5W6oJr9MvZbqU3G57/D39JEP5hcB/snLc7v/ZfCu8G/wy/0578yHoINqPvlXGkWn5U9ncNTwT7zFb+x1i3kux/KopC2pwZyv4fYpsLrQ==
+  </data>
+ </layer>
+ <layer name="details" width="32" height="12">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgF9lj49mh8ZiRxEGbEotYeTS0++/DJYwNCNFI7UuzXG2D7KQWj9g+s/Yo0UosM9KmoDqTGAIr1oDQ2fQBPoAZg
+  </data>
+ </layer>
+ <layer name="foreground" width="32" height="12">
+  <data encoding="base64" compression="zlib">
+   eJxjYBjZwB6NZkGTR+fjAyxo6nHpxWemMAE+PqCMpl4JhzoRPGag6yHFfmLVk2ImPreSq54UM5VJtJ8Y9bjiZRSMAnoDAIZQAig=
+  </data>
+ </layer>
+ <layer name="solid" width="32" height="12" visible="0">
+  <data encoding="base64" compression="zlib">
+   eJxjYKAtiCEgFkMHDALRUIxu50ACetqP7P+BsB8bGPU//cCo/wen/7HhaDRMy7IRAEZdHQ8=
+  </data>
+ </layer>
+</map>

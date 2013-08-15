@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="80" height="24" tilewidth="16" tileheight="16">
+ <tileset firstgid="1" name="custom" tilewidth="16" tileheight="16" spacing="1" margin="1">
+  <image source="custom_tiles.gif" width="256" height="103"/>
+ </tileset>
+ <tileset firstgid="91" name="markers" tilewidth="16" tileheight="16" spacing="1" margin="1">
+  <image source="tilemarkers.gif" width="35" height="35"/>
+  <tile id="0">
+   <properties>
+    <property name="type" value="oneway"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer name="background" width="80" height="24">
+  <data encoding="base64" compression="zlib">
+   eJzdlwEOgjAMRateYHgBajwH97+WkmzJUsemn5V9fEkjYTDfPoVkk4hMJ67RMDigMLgzOKAwuDM4oDC4MzigMLgzOKAwuDM4oDC4MzigMLgzOKAwuDM4oDC4MzigMLj32jNdB9Q/5Td6H3zkHrvnfEus0Wv0zi+ts3d+PdBYiUvlOntPeNctO05jc5xnNmO1+SyhMc6S317uB/xH3n8JNL/SXHuYY6EckZ9l9T1T/5Xev8SaH5q/fnldz/7zoLX+INsZevRf7Xk94y9TfhaV7d6wa/N6f/Nnyvz9+xXbqyk/zc6p1NnzvU3vAmP/tfYcJWz/qXzmEwrn7D1aGWf//uV7slqVcnw4ObVA8/Pay/ZyWEx57r9fcVYkVg==
+  </data>
+ </layer>
+ <layer name="details" width="80" height="24">
+  <data encoding="base64" compression="zlib">
+   eJzt0tEJgCAUhWGjJmiDGsDawP23isCHuKgIJx/U/wMJ8VyRQ84BAAAAAABgZCEuuw/mbCucfedzd65mbklkg8nWvrkHpzi/N8rOgv40an/+r4d0iv9PQ3+a2fu7xPkZ+lM7KjkaZUdS239N7s3ccfn4Tc09JAIJ2A==
+  </data>
+ </layer>
+ <layer name="foreground" width="80" height="24">
+  <data encoding="base64" compression="zlib">
+   eJzt07ENwCAMBEAKNkgmCINk/63SWzLBRQqiuwZZPAiQaQ0AAAAAcncYe5iP9UwP+WxtZc/dHC/1zAj5K8mdpRPtJd658n6r+eqeO6v2ykr+z/0XjQ/y2b8GgFUPcUQCKA==
+  </data>
+ </layer>
+ <layer name="solid" width="80" height="24" visible="0">
+  <data encoding="base64" compression="zlib">
+   eJzt10EKgDAMBMD+s/3/O0RQKF4MtdKIM5BLT2HZQ1MKAAAA8Hct+LZK+8Ds6jHXnRknv7i+fyf5PSO/OP2bT35x+jdfxvwif7EVsvcvklGGHHsZ9hjJ5K6j9TJv3iYb4eYp/w==
+  </data>
+ </layer>
+ <objectgroup name="rooms" width="80" height="24">
+  <object name="3" x="768" y="192" width="512" height="192"/>
+  <object x="768" y="192" height="112"/>
+  <object name="2" x="512" y="192" width="256" height="192"/>
+  <object name="1" x="0" y="0" width="512" height="384"/>
+ </objectgroup>
+</map>
