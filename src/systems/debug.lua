@@ -51,9 +51,11 @@ secs.rendersystem("debug", 200, function()
 		love.graphics.pop()
 		
 		-- draw framerate info and debug log
-		love.graphics.print("dt:   "..DT, 10, 10)
-		love.graphics.print("fps:  "..math.floor(1/DT), 10, 25)
-		love.graphics.print(DBG, 10, 40)
+		local dt = DEBUG_MODE.dt
+		local msg = DEBUG_MODE.message
+		love.graphics.print("dt:   "..dt, 10, 10)
+		love.graphics.print("fps:  "..math.floor(1/dt), 10, 25)
+		love.graphics.print(msg, 10, 40)
 	
 	end
 end)
