@@ -62,7 +62,9 @@ secs.factory("knife", function(x, y, dx)
         { "pos", { 
             x = x or 0, 
             y = y or 0, 
-            dx = dx or 1 
+            dx = dx or 1,
+            width = 16,
+            height = 12
         }},
         { "sprite", { 
             image = knife
@@ -76,9 +78,7 @@ secs.factory("knife", function(x, y, dx)
             width = 16, 
             height = 12, 
             offsetX = 0, 
-            offsetY = -2, 
-            centerX = 10, 
-            centerY = 6 
+            offsetY = -2
         }}}
     )
 end)
@@ -93,7 +93,9 @@ secs.factory("player", function(x, y)
         }},
         { "pos", { 
             x = x, 
-            y = y
+            y = y,
+            width = 16,
+            height = 32
         }},
         { "subweapon", { 
             current = "knife"
@@ -149,7 +151,9 @@ secs.factory("enemy", function(x,y)
     return secs.entity(
         { "pos", { 
             x = x, 
-            y = y 
+            y = y,
+            width = 16,
+            height = 32
         }},
         { "mortalState", { 
             health = 3, 

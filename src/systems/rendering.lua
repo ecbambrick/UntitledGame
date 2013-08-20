@@ -100,8 +100,8 @@ function renderAnimation(e)
 	local color = e.color and e.color.rgb or { 255, 255, 255, 255 }
 	
 	-- calculate offseted position if flipped
-	if dx < 0 then x = x - sprite.offsetX*2 + sprite.centerX*2 end
-	if dy < 0 then y = y - sprite.offsetY*2 + sprite.centerY*2 end
+	if dx < 0 then x = x - sprite.offsetX*2 + e.pos.width  end
+	if dy < 0 then y = y - sprite.offsetY*2 + e.pos.height end
 	
 	-- draw if onscreen
 	if withinView(x,y,0,0) then

@@ -155,12 +155,12 @@ function updateHitboxCoordinates(e, hitbox)
 	if e.pos.dx >= 0 then
 		hitbox.x1 = e.pos.x + hitbox.offsetX
 	else
-		hitbox.x1 = e.pos.x - hitbox.offsetX - hitbox.width  + hitbox.centerX*2
+		hitbox.x1 = e.pos.x - hitbox.offsetX - hitbox.width + e.pos.width
 	end
 	if e.pos.dy >= 0 then
 		hitbox.y1 = e.pos.y + hitbox.offsetY
 	else
-		hitbox.y1 = e.pos.y - hitbox.offsetY - hitbox.height + hitbox.centerY*2
+		hitbox.y1 = e.pos.y - hitbox.offsetY - hitbox.height + e.pos.height
 	end
 	hitbox.x2 = hitbox.x1 + hitbox.width
 	hitbox.y2 = hitbox.y1 + hitbox.height

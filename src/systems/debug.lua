@@ -69,13 +69,12 @@ function renderHitboxes(e)
 	
 		-- get position and hitbox type
 		local offsetX, offsetY = h.offsetX*2, h.offsetY*2
-		local centerX, centerY = h.centerX*2, h.centerY*2
 		local width, height, htype = h.width, h.height, h.type
 		local x, y = ex + h.offsetX, ey + h.offsetY
 		
 		-- calculate offseted position if flipped
-		if edx < 0 then x = x - offsetX - width  + centerX end
-		if edy < 0 then y = y - offsetY - height + centerY end
+		if edx < 0 then x = x - offsetX - width  + e.pos.width  end
+		if edy < 0 then y = y - offsetY - height + e.pos.height end
 		
 		-- different color depending on hitbox type
 		if htype == "active"  then love.graphics.setColor(0,255,0,100)   end

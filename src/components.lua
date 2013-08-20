@@ -35,7 +35,9 @@ secs.component("hitboxes", {})
 secs.component("pos", { 
     x = 0, 
     y = 0, 
-    z = 0, 
+    z = 0,
+    width = 0,
+    height = 0,
     dx = 1, 
     dy = 1
 })
