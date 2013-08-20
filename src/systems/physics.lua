@@ -93,18 +93,17 @@ end
 
 function resolveCollisionDown(e, hitbox, map, dt)
 	local w, h, solidLayer = map.tileWidth, map.tileHeight, map("solid")
-	for x = math.floor(hitbox.x1/w), math.ceil(hitbox.x2/w)-1 do
-		for y = math.ceil(hitbox.y2/h), math.floor((hitbox.y2+e.vel.y*dt)/h) do
+	local x1, x2 = math.floor(hitbox.x1/w), math.ceil(hitbox.x2/w)-1
+	local y1, y2 = math.ceil(hitbox.y2/h), math.floor((hitbox.y2+e.vel.y*dt)/h)
+	for y = y1, y2 do
+		for x = x1, x2 do
+			-- prevent movement into solid and one-way tiles
 			local tile = solidLayer(x,y)
 			if tile then
+				resolveCollisionOneWay(e, tile)
 				e.pos.y = y*h - hitbox.offsetY - hitbox.height
 				e.vel.y = 0
-				if e.physicsState then
-					e.physicsState.onGround = true
-					if tile.properties.type == "oneway" then
-						e.physicsState.onOneway = true
-					end
-				end
+				return
 			end
 		end
 	end
@@ -112,12 +111,16 @@ end
 
 function resolveCollisionUp(e, hitbox, map, dt)
 	local w, h, solidLayer = map.tileWidth, map.tileHeight, map("solid")
-	for x = math.floor(hitbox.x1/w), math.ceil(hitbox.x2/w)-1 do
-		for y = math.floor(hitbox.y1/h)-1, math.floor((hitbox.y1+e.vel.y*dt)/h), -1 do
+	local x1, x2 = math.floor(hitbox.x1/w), math.ceil(hitbox.x2/w)-1
+	local y1, y2 = math.floor(hitbox.y1/h)-1, math.ceil((hitbox.y1+e.vel.y*dt)/h)-1
+	for y = y1, y2, -1 do
+		for x = x1, x2 do
+			-- prevent movement into solid tiles
 			local tile = solidLayer(x,y)
-			if tile and tile.properties.type ~= "oneway" then
+			if tile and tile.properties.type == "solid" then
 				e.pos.y = (y+1)*h - hitbox.offsetY
 				e.vel.y = 0
+				return
 			end
 		end
 	end
@@ -125,12 +128,16 @@ end
 
 function resolveCollisionLeft(e, hitbox, map, dt)
 	local w, h, solidLayer = map.tileWidth, map.tileHeight, map("solid")
-	for x = math.floor((hitbox.x1+e.vel.x*dt)/w), math.ceil(hitbox.x1/w)-1, -1 do
-		for y = math.floor(hitbox.y1/h), math.ceil(hitbox.y2/h)-1 do
+	local x1, x2 = math.floor(hitbox.x1/w), math.floor((hitbox.x1+e.vel.x*dt)/w)
+	local y1, y2 = math.floor(hitbox.y1/h), math.ceil(hitbox.y2/h)-1
+	for x = x1, x2, -1 do
+		for y = y1, y2 do
+			-- prevent movement into solid tiles
 			local tile = solidLayer(x,y)
-			if tile and tile.properties.type ~= "oneway" then
+			if tile and tile.properties.type == "solid" then
 				e.pos.x = (x+1)*w - hitbox.offsetX
 				e.vel.x = 0
+				return
 			end
 		end
 	end
@@ -138,13 +145,26 @@ end
 
 function resolveCollisionRight(e, hitbox, map, dt)
 	local w, h, solidLayer = map.tileWidth, map.tileHeight, map("solid")
-	for x = math.ceil(hitbox.x2/w), math.floor((hitbox.x2+e.vel.x*dt)/w) do
-		for y = math.floor(hitbox.y1/h), math.ceil(hitbox.y2/h)-1 do
+	local x1, x2 = math.floor(hitbox.x2/w), math.floor((hitbox.x2+e.vel.x*dt)/w) 
+	local y1, y2 = math.floor(hitbox.y1/h), math.ceil(hitbox.y2/h)-1
+	for x = x1, x2 do
+		for y = y1, y2 do
+			-- prevent movement into solid tiles
 			local tile = solidLayer(x,y)
-			if tile and tile.properties.type ~= "oneway" then
+			if tile and tile.properties.type == "solid" then
 				e.pos.x = x*w - hitbox.offsetX - hitbox.width
 				e.vel.x = 0
+				return
 			end
+		end
+	end
+end
+
+function resolveCollisionOneWay(e, tile)
+	if e.physicsState then
+		e.physicsState.onGround = true
+		if tile.properties.type == "oneway" then
+			e.physicsState.onOneway = true
 		end
 	end
 end
