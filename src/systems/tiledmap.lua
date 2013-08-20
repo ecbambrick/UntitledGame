@@ -14,7 +14,7 @@ Load and unload tiled maps with AdvancedTiledLoader
 secs.updatesystem("tiledmap", 50, function(dt)
 	for i,e in ipairs(secs.query("stages")) do
 		if e.stage.unload and e.stage.map then unloadTiledMap(e.stage) end
-		if e.stage.load and not e.stage.map then loadTiledMap(e.stage) end
+		if e.stage.loadStage and not e.stage.map then loadTiledMap(e.stage) end
 	end
 end)
 
@@ -24,7 +24,7 @@ end)
 function loadTiledMap(stage)
 
 	-- load map
-    stage.load = false
+    stage.loadStage = false
     stage.map = AdvancedTiledLoader.load(stage.path)
     stage.map.drawObjects = false
 	
