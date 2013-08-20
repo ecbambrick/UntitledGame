@@ -73,7 +73,7 @@ function love.load()
 
 	local player = secs.entity.player(16*38, 16*19-2)
 	secs.entity.spatialmap(32)
-	secs.entity.stage("assets/area1.tmx", "2", true)
+	secs.entity.stage("assets/area1.tmx", "room2", true)
 	secs.entity.camera(player.pos)
 	
 end -- end of love.load()

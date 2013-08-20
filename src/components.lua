@@ -19,6 +19,8 @@ secs.component("stage", {
     loadRoom = false
 })
 
+secs.component("roomEntity")
+
 secs.component("debug", {
     id = "", 
     message = "" 

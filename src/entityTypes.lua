@@ -26,3 +26,4 @@ secs.type("players", "pos", "vel", "playerInput", "animation", "attackState", "p
 secs.type("stages", "stage")
 secs.type("enemies", "pos", "enemyState")
 secs.type("subweapons", "pos", "isSubweapon")
+secs.type("roomEntities", "roomEntity")
