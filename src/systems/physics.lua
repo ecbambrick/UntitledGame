@@ -98,9 +98,10 @@ function resolveCollisionDown(e, hitbox, map, dt)
 	for y = y1, y2 do
 		for x = x1, x2 do
 			-- prevent movement into solid and one-way tiles
-			local tile = solidLayer(x,y)
-			if tile then
-				resolveCollisionOneWay(e, tile)
+			local tile1 = solidLayer(x,y)
+			local tile2 = solidLayer(math.ceil(hitbox.x2/w)-1, y)
+			if tile1 then
+				resolveCollisionOneWay(e, tile1, tile2)
 				e.pos.y = y*h - hitbox.offsetY - hitbox.height
 				e.vel.y = 0
 				return
@@ -160,10 +161,11 @@ function resolveCollisionRight(e, hitbox, map, dt)
 	end
 end
 
-function resolveCollisionOneWay(e, tile)
+function resolveCollisionOneWay(e, tile1, tile2)
 	if e.physicsState then
 		e.physicsState.onGround = true
-		if tile.properties.type == "oneway" then
+		if tile1.properties.type == "oneway"
+		and ( not tile2 or tile2.properties.type == "oneway" ) then
 			e.physicsState.onOneway = true
 		end
 	end
