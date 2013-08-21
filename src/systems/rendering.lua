@@ -42,11 +42,8 @@ function renderStageBackground(e, camera)
 			map:setDrawRange(camera.pos.x, camera.pos.y, WINDOW_WIDTH, WINDOW_HEIGHT)
 		end
 		map:_updateTileRange()
-		for i,layer in ipairs(map.layerOrder) do
-			if layer.name ~= "solid" and layer.name ~= "foreground" then
-				layer:draw()
-			end
-		end
+        map("background1"):draw()
+        map("background2"):draw()
     end
 end
 
@@ -59,7 +56,9 @@ function renderStageForeground(e, camera)
 		if camera then
 			map:setDrawRange(camera.pos.x, camera.pos.y, WINDOW_WIDTH, WINDOW_HEIGHT)
 		end
-        map("foreground"):draw()
+        map("main"):draw()
+        map("foreground1"):draw()
+        map("foreground2"):draw()
     end
 end
 
