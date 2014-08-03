@@ -9,21 +9,21 @@ local withinView
 --[[
 asdasdsad
 --]]
-secs.rendersystem("render", 100, function()
+secs:RenderSystem("render", function()
 
 	-- set camera
-	local camera = secs.query("cameras")[1]
+	local camera = secs:queryFirst("camera")
 	love.graphics.push()
-	love.graphics.scale(WINDOW_SCALE)
+	love.graphics.scale(DEFAULT_WINDOW_SCALE, DEFAULT_WINDOW_SCALE)
 	if camera then
 		love.graphics.translate(-camera.pos.x, -camera.pos.y)
 	end
 	
 	-- draw each type of entity
-	for i,e in ipairs(secs.query("stages"))   do renderStageBackground(e, camera) end
-	for i,e in ipairs(secs.query("sprites"))  do renderSprite(e)          end
-	for i,e in ipairs(secs.query("animated")) do renderAnimation(e)       end
-	for i,e in ipairs(secs.query("stages"))   do renderStageForeground(e, camera) end
+	for e in pairs(secs:query("stage"))   do renderStageBackground(e, camera) end
+	for e in pairs(secs:query("sprite"))  do renderSprite(e)          end
+	for e in pairs(secs:query("animation")) do renderAnimation(e)       end
+	for e in pairs(secs:query("stage"))   do renderStageForeground(e, camera) end
 	
 	-- unset camera
 	love.graphics.pop()
@@ -39,7 +39,7 @@ function renderStageBackground(e, camera)
 	local map = e.stage.map
     if map then
 		if camera then
-			map:setDrawRange(camera.pos.x, camera.pos.y, WINDOW_WIDTH, WINDOW_HEIGHT)
+			map:setDrawRange(camera.pos.x, camera.pos.y, camera.camera.width, camera.camera.width)
 		end
 		map:_updateTileRange()
         map("background1"):draw()
@@ -54,7 +54,7 @@ function renderStageForeground(e, camera)
 	local map = e.stage.map
     if map then
 		if camera then
-			map:setDrawRange(camera.pos.x, camera.pos.y, WINDOW_WIDTH, WINDOW_HEIGHT)
+			map:setDrawRange(camera.pos.x, camera.pos.y, camera.camera.width, camera.camera.width)
 		end
         map("main"):draw()
         map("foreground1"):draw()
@@ -90,7 +90,7 @@ end
 draw the current animation's current frame's sprite to the screen
 --]]
 function renderAnimation(e)
-	
+
 	-- get position and sprite data
 	local animation = e.animation.list[e.animation.current]
 	local sprite = animation:sprite()
@@ -105,7 +105,7 @@ function renderAnimation(e)
 	-- draw if onscreen
 	if withinView(x,y,0,0) then
 		love.graphics.setColor(color)
-		love.graphics.drawq(animation.image, sprite.quad, x, y, 0, dx, dy)
+		love.graphics.draw(animation.image, sprite.quad, x, y, 0, dx, dy)
 		love.graphics.setColor(255,255,255,255)
 	end
 	

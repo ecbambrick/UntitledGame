@@ -1,283 +1,301 @@
---[[----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Copyright (c) 2013, 2014 Cole Bambrick
+--
+-- This software is provided 'as-is', without any express or implied
+-- warranty. In no event will the authors be held liable for any damages
+-- arising from the use of this software.
+--
+-- Permission is granted to anyone to use this software for any purpose,
+-- including commercial applications, and to alter it and redistribute it
+-- freely, subject to the following restrictions:
+--
+-- 1. The origin of this software must not be misrepresented; you must not
+--    claim that you wrote the original software. If you use this software
+--    in a product, an acknowledgment in the product documentation would be
+--    appreciated but is not required.
+-- 2. Altered source versions must be plainly marked as such, and must not be
+--    misrepresented as being the original software.
+-- 3. This notice may not be removed or altered from any source distribution.
+-- 
+-- For full documentation, see
+-- https://github.com/ecbambrick/SimpleEntityComponentSystem/wiki
+--------------------------------------------------------------------------------
+local EntityComponentSystem = {}
 
-    Copyright (C) 2013 by Cole Bambrick
-    cole.bambrick@gmail.com
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see http://www.gnu.org/licenses/.
-    
-    For documentation, see
-    https://github.com/ecbambrick/SimpleEntityComponentSystem/wiki
-
---]]----------------------------------------------------------------------------
-
--- local newIndexErrorMessage = "attempt to add new key to "
--- setmetatable({}, { __mode = "kv" })
--- setmetatable({}, { __newindex = function (t,k,v) error(newIndexErrorMessage, 2) end })
-
-local secs = {}                         -- main container
-local updateSystems = {}                -- functions that deal with update logic
-local renderSystems = {}                -- functions that deal with render logic
-local components = {}                   -- groupings of simple data
-local types = {}                        -- catagories based on components
-local scenes = { main = { all = {} } }  -- storage for game objects
-local currentscene = "main"             -- TODO: implement multiple scenes
-
---------------------------------------------------- TYPE REGISTRATION (PRIVATE)
-
---[[
-check if an entity meets the component requirements for a type
---]]
-local function entityMeetsRequirements(entity, entityType)
-    local result = true
-    for i,component in ipairs(entityType.components) do
-        if entity[component] == nil then
-            result = false
-            break
-        end
-    end
-    return result
-end
-
---[[
-check if the entity doesn't already exist in the list
---]]
-local function entityExistsInType(entity, entityType)
-    local result = false
-    local index = 0
-    for i,typeEntity in ipairs(entityType) do
-        if typeEntity == entity then
-            result = true
-            index = i
-            break
-        end
-    end
-    return result, index
-end
-
---[[
-registers or unregisters an entity with an entity type;
-if it meets the requirements and is not already registered, 
-the entity is registered, otherwise the entity is unregistered
---]]
-local function registerEntity(entity, entityType)
-    local meetsRequirements = entityMeetsRequirements(entity, entityType)
-    local exists, index = entityExistsInType(entity, entityType)
-    
-    -- add/remove the entity to/from the type
-    if meetsRequirements and not exists then
-        table.insert(entityType, entity)
-    elseif not meetsRequirements and exists then
-        table.remove(entityType, index)
-    end
-end
-
---[[
-register/unregister an entity for all entity types
---]]
-local function updateEntityType(entity)
-    for i,entityType in pairs(scenes[currentscene]) do
-        if i ~= "all" then
-            registerEntity(entity, entityType)
-        end
-    end
-end
-
---[[
-register/unregister all entities for a specific type
---]]
-local function updateEntityTypeList(sceneName, entityTypeName)
-    local scene = scenes[sceneName]
-    local entityType = scene[entityTypeName]
-    for i,entity in ipairs(scene.all) do
-        registerEntity(entity, entityType)
-    end
-end
-
------------------------------------------------------------------------ SYSTEMS
-
---[[
-define a new update system
---]]
-function secs.updatesystem(name, priority, callback)
-    table.insert(
-        updateSystems, 
-        { name = name, priority = priority, active = true, update = callback }
-    )
-    table.sort(
-        updateSystems, 
-        function(a,b) return a.priority < b.priority end
-    )
-end
-
---[[
-define a new render system
---]]
-function secs.rendersystem(name, priority, callback)
-    table.insert(
-        renderSystems, 
-        { name = name, priority = priority, active = true, update = callback }
-    )
-    table.sort(
-        renderSystems, 
-        function(a,b) return a.priority < b.priority end
-    )
-end
-
--------------------------------------------------------------------- COMPONENTS
-
---[[
-define a new component constructor
---]]
-function secs.component(componentName, componentValues)
-	componentValues = componentValues or {}
-    components[componentName] = componentValues
-end
-
--------------------------------------------------------------- ENTITY FACTORIES
-
---[[
-define a new entity factory
---]]
-function secs.factory(name, callback)
-    secs.entity[name] = callback
-end
-
------------------------------------------------------------------- ENTITY TYPES
-
---[[
-define a new entity type
---]]
-function secs.type(typeName, ...)
-    -- create a type object
-    local componentList = {}
-    for i,component in ipairs(arg) do
-        table.insert(componentList, component)
-    end
-    
-    types[typeName] = componentList
-    
-    -- register entities for that type in each scene
-    for sceneName,scene in pairs(scenes) do
-        scene[typeName] = { components = componentList }
-        updateEntityTypeList(sceneName, typeName)
-    end
-end
-
----------------------------------------------------------------------- ENTITIES
-
---[[
-the table of entity factories;
-if the table is called as a function, an empty entity will be created
---]]
-secs.entity = { 
-    new = function(self, ...)
-        local entity = {}
-        for i,v in ipairs(arg) do secs.attach(entity, v[1], v[2]) end
-        table.insert(scenes[currentscene].all, entity)
-        return entity
-    end 
-}
-setmetatable(secs.entity, { __call = secs.entity.new })
-
---[[
-delete an entity from the current scene
---]]
-function secs.delete(entity)
-    for i in pairs(entity) do entity[i] = nil end
-	updateEntityType(entity)
-    for i,v in ipairs(scenes[currentscene].all) do
-        if v == entity then
-            table.remove(scenes[currentscene].all, i)
-			break
-        end
-    end
-end
-
---[[
-delete all entities from the current scene
-TODO: would it work to just set every scene type to {}?
-      alternatively, would setting each type as a weak table work?
---]]
-function secs.clear()
-    -- remove all components, thus deregistering the entity from each type
-    for i,entity in ipairs(scenes[currentscene].all) do
-        for componentName in pairs(entity) do 
-            secs.detach(entity, componentName)
-        end
-    end
-    scenes[currentscene].all = {}
-end
-
---[[
-attach a component to an entity and override the default properties
---]]
-function secs.attach(entity, componentName, args)
-    entity[componentName] = {}
-    if not args then args = {} end
-    local defaults = components[componentName]
-    local component = entity[componentName]
-    for i,v in pairs(defaults) do component[i] = v end
-    for i,v in pairs(args)     do component[i] = v end
-    updateEntityType(entity)
-end
-
---[[
-detach (pop) a component from an entity
---]]
-function secs.detach(entity, ...)
+--------------------------------------------------------------------------------
+-- Parses the given query for a list of component names and returns a table of
+-- those names. If a component name does not exist in the table of registered
+-- components, then an error is thrown.
+-- @param queryString			The query to parse.
+-- @param registeredComponents	The list of all registered components.
+-- @return 						The table of component names.
+--------------------------------------------------------------------------------
+local function parseQuery(queryString, registeredComponents)
 	local components = {}
-	for i,v in ipairs(arg) do
-		table.insert(components, entity[v])
-		entity[v] = nil
+	
+	for componentName in queryString:gmatch("%S+") do
+		if not registeredComponents[componentName] then
+			error(componentName)
+		end
+		table.insert(components, componentName)
 	end
-    updateEntityType(entity)
-    return components
+	
+	return components
 end
 
---[[
-Return the list of entities of the provided type for the current scene
---]]
-function secs.query(entityType)
-    if not entityType then entityType = "all" end
-    return scenes[currentscene][entityType]
+--------------------------------------------------------------------------------
+-- Registers or unregisters an entity to or from a group. If the requirements 
+-- of the group's type are met, it is registered; otherwise, it is unregistered.
+-- @param entity        The entity.
+-- @param group         The group.
+--------------------------------------------------------------------------------
+local function registerEntityWithGroup(entity, group)
+    local meetsRequirements = true
+
+    for _, component in ipairs(group.components) do
+        if not entity[component] then
+            meetsRequirements = false
+            break
+		end
+    end
+    
+	if meetsRequirements then
+		group.entities[entity] = true
+	else
+		group.entities[entity] = nil
+	end
 end
 
-
------------------------------------------------------------------------- UPDATE
-
---[[
-update all active updateSystems
---]]
-function secs.update(dt)
-    for i,system in pairs(updateSystems) do
-        if system.active then
-            system.update(dt)
-        end
+--------------------------------------------------------------------------------
+-- Registers or unregisters an entity to or from each group in the given table.
+-- @param entity    The entity.
+-- @param group     The table of groups.
+--------------------------------------------------------------------------------
+local function registerEntityWithGroups(entity, groups)
+    for _, group in pairs(groups) do
+        registerEntityWithGroup(entity, group)
     end
 end
 
---[[
-update all active renderSystems
---]]
-function secs.draw()
-    for i,system in pairs(renderSystems) do
+--------------------------------------------------------------------------------
+-- Registers or unregisters all given entities to or from the given group.
+-- @param scene         The scene.
+-- @param group         The group.
+--------------------------------------------------------------------------------
+local function registerEntitiesWithGroup(entities, group)
+    for entity in pairs(entities) do
+        registerEntityWithGroup(entity, group)
+    end
+end
+
+--------------------------------------------------------------------------------
+-- Attaches a new instance of the component to the given entity using the given
+-- data. Default values for the component will be used where necessary.
+-- @param entity            The entity.
+-- @param componentName     The name of the component.
+-- @param newComponentData  The data to give to the component.
+-- @return					The entity.
+--------------------------------------------------------------------------------
+function EntityComponentSystem:attach(entity, components)
+	for name, newComponentData in pairs(components) do
+		local defaultComponentData = self._components[name]
+		local component = {}
+		
+		-- Copy the default data into the component.
+		for k, v in pairs(defaultComponentData) do 
+			component[k] = v
+		end
+		
+		-- Copy the new data into the component.
+		for k, v in pairs(newComponentData) do
+			component[k] = v
+		end
+		
+		-- Attach the component to the entity
+		entity[name] = component
+		
+	end
+    
+    -- Update the entity's groups.
+    registerEntityWithGroups(entity, self._entityGroups)
+end
+
+--------------------------------------------------------------------------------
+-- Delete and unregister all entities.
+--------------------------------------------------------------------------------
+function EntityComponentSystem:clear()
+    for group in pairs(self._entityGroups) do
+        group.entities = {}
+    end
+end 
+
+--------------------------------------------------------------------------------
+-- Create and register a new component constructor.
+-- @param name  The name of the component.
+-- @param data  The data for the component (i.e. { x = 0, y = 0 }).
+--------------------------------------------------------------------------------
+function EntityComponentSystem:Component(name, data)
+    self._components[name] = data or {}
+end
+
+--------------------------------------------------------------------------------
+-- Deletes and unregisters the given entity.
+-- @param entity    The entity.
+--------------------------------------------------------------------------------
+function EntityComponentSystem:delete(entity)
+    for component in pairs(entity) do
+        -- This is faster than calling detach() on each component.
+        entity[component] = nil
+    end
+    
+    -- Unregister the entity from all entity types in the scene.
+    registerEntityWithGroups(entity, self._entityGroups)
+end
+
+--------------------------------------------------------------------------------
+-- Remove and unregsiter a component from an entity.
+-- @param entity    The entity.
+-- @param ...       The list of component names to remove.
+-- @return          The table of components that were removed.
+--------------------------------------------------------------------------------
+function EntityComponentSystem:detach(entity, ...)
+    local removedComponents = {}
+    
+    for _, component in ipairs({...}) do
+        table.insert(removedComponents, entity[component])
+        entity[component] = nil
+    end
+    
+    registerEntityWithGroups(entity, self._entityGroups)
+    
+    return removedComponents
+end
+
+--------------------------------------------------------------------------------
+-- Call each active render system.
+--------------------------------------------------------------------------------
+function EntityComponentSystem:draw()
+    for _, system in pairs(self._renderSystems) do
         if system.active then
             system.update()
         end
     end
 end
 
------------------------------------------------------------------------- RETURN
+--------------------------------------------------------------------------------
+-- Creates and registers a new entity.
+-- @param ...   The table of components where each component is a name and a
+--              set of data (i.e. { "pos", { x = 1, y =1 } }, { "player" }).
+-- @return      The newly created entity
+--------------------------------------------------------------------------------
+function EntityComponentSystem:Entity(...)
+	local entity = {}
 
-return secs
+	if ... then
+		self:attach(entity, ...)
+	else
+		registerEntityWithGroups(entity, self._entityGroups)
+	end
+	
+	return entity
+end
+
+--------------------------------------------------------------------------------
+-- Return the list of entities of the provided type, or the list of all entities
+-- if no type is provided.
+-- @param entityTypeName	The name of the entity type to query by.
+-- @return              	The list of entities.
+--------------------------------------------------------------------------------
+function EntityComponentSystem:query(queryString)
+	local queryString = queryString or "all"
+
+	if not self._entityGroups[queryString] then
+		local components = parseQuery(queryString, self._components)
+		local groups = self._entityGroups
+		groups[queryString] = { components = components, entities = {} }
+		registerEntitiesWithGroup(groups.all.entities, groups[queryString])    
+	end
+	
+    return self._entityGroups[queryString].entities
+end
+
+--------------------------------------------------------------------------------
+-- Return the first entity of the provided type for the current scene.
+-- @param entityTypeName    The name of the entity type to query by.
+-- @return              	The first entity of the given type or nil if there 
+-- 							is no entity.
+--------------------------------------------------------------------------------
+function EntityComponentSystem:queryFirst(entityTypeName)
+    return next(self:query(entityTypeName))
+end
+
+--------------------------------------------------------------------------------
+-- Create and register a new render system. Systems are called in the order in
+-- which they are created.
+-- @param name      The name of the system.
+-- @param callback  The callback function for the system.
+--------------------------------------------------------------------------------
+function EntityComponentSystem:RenderSystem(name, callback)
+    local system = {
+        active = true,
+        name = name,
+        update = callback
+    }
+    table.insert(self._renderSystems, system)
+end
+
+--------------------------------------------------------------------------------
+-- Call each active update system.
+-- @param dt    The delta time of the game loop.
+--------------------------------------------------------------------------------
+function EntityComponentSystem:update(dt)
+    for _, system in pairs(self._updateSystems) do
+        if system.active then
+            system.update(dt)
+        end
+    end
+end
+
+--------------------------------------------------------------------------------
+-- Create and register a new update system. Systems are called in the order in
+-- which they are created.
+-- @param name      The name of the system.
+-- @param callback  The callback function for the system.
+--------------------------------------------------------------------------------
+function EntityComponentSystem:UpdateSystem(name, callback)
+    local system = {
+        active = true,
+        name = name,
+        update = callback
+    }
+    table.insert(self._updateSystems, system)
+end
+
+--------------------------------------------------------------------------------
+-- Constructs a new instance of the entity component system.
+-- @return A new instance of the entity component system.
+--------------------------------------------------------------------------------
+return function()
+    local self = {}
+    
+    -- The table of components. The key is the component name and each value
+    -- contains a tables of default component properties.
+    self._components = {}
+    
+    -- The table of entity groups. The key is the name of the entity group and
+    -- each value contains a table of entities that belong to that group.
+    -- Each group contains an entity type and a table of entities that are of
+    -- that type. The group named "all" contains all entities.
+    self._entityGroups = {}
+    self._entityGroups.all = { components = {}, entities = {} }
+    
+    -- The table of render systems. The key is the system name and each value
+    -- contains a tables of systems properties.
+    self._renderSystems = {}
+    
+    -- The table of update systems. The key is the system name and each value
+    -- contains a tables of systems properties.
+    self._updateSystems = {}
+    
+    return setmetatable(self, { __index = EntityComponentSystem })
+end

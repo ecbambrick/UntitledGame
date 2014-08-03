@@ -1,6 +1,8 @@
 --[[----------------------------------------------------------------------------
 --]]----------------------------------------------------------------------------
 
+require("...lib.math")
+
 -- helper functions
 local applyFriction, applyGravity, updatePositionX, updatePositionY
 local preventHorizontalCollisions, preventVerticalCollisions
@@ -8,34 +10,34 @@ local resolveCollisionLeft, resolveCollisionRight
 local resolveCollisionDown, resolveCollisionUp
 
 -- physics properties
-local gravity, frict = 700, 600
+local gravity, frict = 900, 600
 
 ---------------------------------------------------------- MAIN UPDATE FUNCTION
 
-secs.updatesystem("physics", 300, function(dt)
+secs:UpdateSystem("physics", function(dt)
 	
 	-- load current map
-	local map = secs.query("stages")[1].stage.map
+	local map = secs:queryFirst("stage").stage.map
 	
 	-- update hitboxes
-	for i,e in ipairs(secs.query("collidable")) do
-		for j,h in ipairs(e.hitboxes) do
-			updateHitboxCoordinates(e, h)
-		end
+	for e in pairs(secs:query("hitboxes pos")) do
+		updateHitboxes(e)
 	end
 	
 	-- apply physical forces and prevent solid tile collisions
-	for i,e in ipairs(secs.query("physical")) do
+	for e in pairs(secs:query("pos vel")) do
 		
 		-- x direction
 		applyFriction(e, dt)
 		preventHorizontalCollisions(e, map, dt)
 		updatePositionX(e, dt)
+		updateHitboxes(e)
 		
 		-- y direction
 		applyGravity(e, dt)
 		preventVerticalCollisions(e, map, dt)
 		updatePositionY(e, dt)
+		updateHitboxes(e)
 		
 	end
 	
@@ -172,6 +174,14 @@ function resolveCollisionOneWay(e, tile1, tile2)
 end
 
 ------------------------------------------------------------- HITBOX MANAGEMENT
+
+function updateHitboxes(e)
+	if e.hitboxes then
+		for i,h in ipairs(e.hitboxes) do
+			updateHitboxCoordinates(e, h)
+		end
+	end
+end
 
 function updateHitboxCoordinates(e, hitbox)
 	if e.pos.dx >= 0 then

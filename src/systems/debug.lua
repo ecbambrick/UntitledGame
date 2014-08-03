@@ -8,56 +8,62 @@ local renderHitboxes, withinView
 --[[
 asdasdsad
 --]]
-secs.rendersystem("debug", 200, function()
-	if DEBUG_MODE.active then
+secs:RenderSystem("debug", function()
+	if not debugger.active then return end
+
+	-- set camera
+	local camera = secs:queryFirst("camera")
+	love.graphics.push()
+	love.graphics.scale(DEFAULT_WINDOW_SCALE, DEFAULT_WINDOW_SCALE)
+	if camera then
+		love.graphics.translate(-camera.pos.x, -camera.pos.y)
+	end
 	
-		-- set camera
-		local camera = secs.query("cameras")[1]
-		love.graphics.push()
-		love.graphics.scale(WINDOW_SCALE)
-		if camera then
-			love.graphics.translate(-camera.pos.x, -camera.pos.y)
-		end
-		
-		-- draw tile map solids (clean this one up)
-		if DEBUG_MODE.showSolidTiles then
-			for i,e in ipairs(secs.query("stages")) do
-				local map = e.stage.map
-				if map then
-					local solids = map("solid")
-					if solids then
-						solids.visible = true
-						solids:draw()
-					end
+	-- draw tile map solids (clean this one up)
+	if debugger.showSolidTiles then
+		for e in pairs(secs:query("stage")) do
+			local map = e.stage.map
+			if map then
+				local solids = map("solid")
+				if solids then
+					solids.visible = true
+					solids:draw()
 				end
 			end
 		end
-		
-		-- draw hitboxes
-		if DEBUG_MODE.showHitboxes then
-			for i,e in ipairs(secs.query("collidable")) do
-				renderHitboxes(e)
-			end
-		end
-		
-		-- draw spatial map
-		if DEBUG_MODE.showSpatialmaps then
-			for i,e in ipairs(secs.query("spatialMaps")) do
-				e.spatialhash.map:draw()
-			end
-		end
-		
-		-- unset camera
-		love.graphics.pop()
-		
-		-- draw framerate info and debug log
-		local dt = DEBUG_MODE.dt
-		local msg = DEBUG_MODE.message
-		love.graphics.print("dt:   "..dt, 10, 10)
-		love.graphics.print("fps:  "..math.floor(1/dt), 10, 25)
-		love.graphics.print(msg, 10, 40)
-	
 	end
+	
+	-- draw hitboxes
+	if debugger.showHitboxes then
+		for e in pairs(secs:query("hitboxes pos")) do
+			renderHitboxes(e)
+		end
+	end
+	
+	-- draw spatial map
+	if debugger.showSpatialmaps then
+		for e in pairs(secs:query("spatialhash")) do
+			e.spatialhash.map:draw()
+		end
+	end
+	
+	-- unset camera
+	love.graphics.pop()
+	
+	-- draw framerate info and debug log
+	local dt = debugger.dt
+	local numEntities = 0
+	
+	for e in pairs(secs:query()) do
+		numEntities = numEntities + 1
+	end
+	
+	-- love.graphics.print("dt:   "..dt, 10, 10)
+	-- love.graphics.print("fps:  "..math.floor(1/dt), 10, 25)
+	-- love.graphics.print("#e:   "..numEntities, 10, 40)
+	-- for i,e in ipairs(debugger.messages) do
+		-- love.graphics.print(message, 10, 40 + i*15)
+	-- end
 end)
 
 --[[

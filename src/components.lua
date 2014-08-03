@@ -1,40 +1,38 @@
---[[----------------------------------------------------------------------------
---]]----------------------------------------------------------------------------
-
+return function(secs)
 ------------------------------------------------------------------- FUNDAMENTAL
 
-secs.component("camera", {
+secs:Component("camera", {
     target = false, 
     x1 = 0, 
     y1 = 0, 
-    x2 = WINDOW_WIDTH, 
-    y2 = WINDOW_HEIGHT
+    x2 = love.graphics.getWidth() / DEFAULT_WINDOW_SCALE, 
+    y2 = love.graphics.getWidth() / DEFAULT_WINDOW_SCALE,
+	width = love.graphics.getWidth() / DEFAULT_WINDOW_SCALE,
+	height = love.graphics.getHeight() / DEFAULT_WINDOW_SCALE
 })
 
-secs.component("stage", {
+secs:Component("stage", {
     map = false, 
     room = "1", 
-    path = "", 
-    loadStage = false, 
-    loadRoom = false
+    path = "",
 })
 
-secs.component("roomEntity")
+secs:Component("roomEntity")
 
-secs.component("debug", {
+secs:Component("debug", {
     id = "", 
     message = "" 
 })
 
-secs.component("spatialhash", {
+secs:Component("spatialhash", {
     map = false
 })
 
-secs.component("hitboxes", {})
+secs:Component("hitboxes", {})
 
 ----------------------------------------------------------------------- SPATIAL
 
-secs.component("pos", { 
+secs:Component("pos", { 
     x = 0, 
     y = 0, 
     z = 0,
@@ -44,7 +42,7 @@ secs.component("pos", {
     dy = 1
 })
 
-secs.component("vel", { 
+secs:Component("vel", { 
     x = 0, 
     y = 0, 
     maxX = 100, 
@@ -55,29 +53,29 @@ secs.component("vel", {
 
 --------------------------------------------------------------------- RENDERING
 
-secs.component("sprite", {
+secs:Component("sprite", {
     image = false
 })
 
-secs.component("color", {
+secs:Component("color", {
     rgb = { 255, 255, 255, 255 }
 })
 
-secs.component("animation", {
+secs:Component("animation", {
     current = false,
     list = false,
 })
 
 ------------------------------------------------------------------------- INPUT
 
-secs.component("playerInput", {
+secs:Component("playerInput", {
     queue = false, 
     commands = false
 })
 
 ------------------------------------------------------------------- BEHAVIOURAL
 
-secs.component("playerState", { 
+secs:Component("playerState", { 
     ducking = false, 
     subweaponing = false, 
     jumping = false, 
@@ -86,39 +84,45 @@ secs.component("playerState", {
     dashing = false 
 })
 
-secs.component("attackState", { 
+secs:Component("attackState", { 
     active = false, 
     finished = false, 
     timer = false, 
     type = "attack" 
 })
 
-secs.component("physicsState", { 
+secs:Component("physicsState", { 
     onGround = false, 
     hasGravity = true, 
     hasFriction = true
 })
 
-secs.component("enemyState", { 
+secs:Component("enemyState", { 
     behaviour = "attack", 
     state = "idle", 
     passiveDistance = 64
 })
 
-secs.component("mortalState", { 
+secs:Component("mortalState", { 
     health = 3, 
     dead = false, 
     invincible = false, 
     recovery = false
 })
 
-secs.component("subweapon", {
+secs:Component("subweapon", {
     current = "knife", 
     ready = true, 
     recovery = 0.4, 
     stock = 5
 })
 
-secs.component("isSubweapon", {
+secs:Component("isSubweapon", {
     type = "knife"
 })
+
+secs:Component("item", {
+	value = false,
+})
+
+end

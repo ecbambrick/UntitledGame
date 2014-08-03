@@ -9,14 +9,16 @@ local updateEnemyAnimation
 --[[
 asdasdsad
 --]]
-secs.updatesystem("animation", 275, function(dt)
-	for i,e in ipairs(secs.query("players")) do
+
+-- rename the functions to differntiate between animation and animation state
+secs:UpdateSystem("animation", function(dt)
+	for e in pairs(secs:query("playerState")) do
 		updatePlayerAnimation(e)
 	end
-	for i,e in ipairs(secs.query("enemies")) do
+	for e in pairs(secs:query("enemyState")) do
 		updateEnemyAnimation(e)
 	end
-	for i,e in ipairs(secs.query("animated")) do
+	for e in pairs(secs:query("animation pos")) do
 		updateFrame(e, dt)
 		updateHitboxes(e, dt)
 	end

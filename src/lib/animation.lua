@@ -14,7 +14,7 @@ local function newAnimation(frameData, delay, loop, ...)
 		sprite = function(self) return self[self.currentFrame].sprite end,
 		hitboxes = function(self) return self[self.currentFrame].hitboxes end,
 	}
-	attachFrames(animation, frameData, arg)
+	attachFrames(animation, frameData, {...})
 	return animation
 end
 

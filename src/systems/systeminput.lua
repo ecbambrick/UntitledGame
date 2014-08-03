@@ -11,7 +11,7 @@ local keysDown, tableContains
 --[[
 Check for system-level input commands such as quitting the game
 --]]
-secs.updatesystem("systeminput", 100, function(dt)
+secs:UpdateSystem("systeminput", function(dt)
 	
 	if #queue > 0 and cooldown:update(dt) then
 		table.remove(queue, 1)
@@ -24,22 +24,22 @@ secs.updatesystem("systeminput", 100, function(dt)
 	
 	-- toggle debug mode
 	if keysDown("0") then
-		DEBUG_MODE.active = not DEBUG_MODE.active
+		debugger.active = not debugger.active
 	end
 	
 	-- toggle debug hitbox display
 	if keysDown("1") then
-		DEBUG_MODE.showHitboxes = not DEBUG_MODE.showHitboxes
+		debugger.showHitboxes = not debugger.showHitboxes
 	end
 	
 	-- toggle debug spatial map display
 	if keysDown("2") then
-		DEBUG_MODE.showSpatialmaps = not DEBUG_MODE.showSpatialmaps
+		debugger.showSpatialmaps = not debugger.showSpatialmaps
 	end
 	
 	-- toggle debug solid tile display
 	if keysDown("3") then
-		DEBUG_MODE.showSolidTiles = not DEBUG_MODE.showSolidTiles
+		debugger.showSolidTiles = not debugger.showSolidTiles
 	end
 	
 end)
@@ -48,7 +48,7 @@ end)
 
 function keysDown(...)
 	local tempQueue = {}	
-	for i,key in ipairs(arg) do
+	for i,key in ipairs({...}) do
 		if love.keyboard.isDown(key) and not tableContains(queue, key) then
 			table.insert(tempQueue, key)
 		else

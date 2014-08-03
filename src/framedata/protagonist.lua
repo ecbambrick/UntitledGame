@@ -15,7 +15,7 @@ local function newHitbox(class, w, h, ox, oy, cx, cy)
 end
 
 return {
-	image = spriteSheet,
+	image = spriteSheet;
 	
 	-- idle (1)
 	{	sprite = newSprite(16*0, 32*0,		16, 32,		0,  0),

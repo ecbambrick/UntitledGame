@@ -8,8 +8,8 @@
 --[[
 asdasdsad
 --]]
-secs.updatesystem("playerState", 200, function(dt)
-	for i,e in ipairs(secs.query("players")) do
+secs:UpdateSystem("playerState", function(dt)
+	for e in pairs(secs:query("playerInput playerState")) do
 		local onGround = e.physicsState.onGround
 		local ducking = e.playerState.ducking
 		local jumping = e.playerState.jumping
@@ -54,7 +54,7 @@ secs.updatesystem("playerState", 200, function(dt)
 				e.pos.y = e.pos.y + 1
 			elseif not ducking then
 				e.playerState.jumping = true
-				e.vel.y = -265
+				e.vel.y = -310
 			end
 		end
 		
@@ -67,8 +67,8 @@ secs.updatesystem("playerState", 200, function(dt)
 		if ( jumping or not anyAttacking ) and not ducking
 		and (input.left or input.right) then
 			if not jumping then e.playerState.walking = true end
-			if input.left  then e.vel.x = e.vel.x - 1000 * dt end
-			if input.right then e.vel.x = e.vel.x + 1000 * dt end
+			if input.left  then e.vel.x = e.vel.x - 1500*dt end
+			if input.right then e.vel.x = e.vel.x + 1500*dt end
 		end
 		
 		-- stop walking when you come to a stop
@@ -99,17 +99,17 @@ secs.updatesystem("playerState", 200, function(dt)
 		end
 		
 		-- landing
-		if anyAttacking and onGround and attack.type == "jumpAttack" then
-			attack.finished = true
-		end
+		-- if anyAttacking and onGround and attack.type == "jumpAttack" then
+			-- attack.finished = true
+		-- end
 		
 		-- subweapon
 		if not attacking and input.subweapon and e.subweapon.ready then
-			secs.entity[e.subweapon.current](e.pos.x + e.pos.dx * 10, e.pos.y + 4, e.pos.dx)
+			factory[e.subweapon.current](e.pos.x + e.pos.dx * 10, e.pos.y + 4, e.pos.dx)
 			e.playerState.subweaponing = true
 			e.subweapon.ready = false
-			setLater(e.subweapon, "ready", true, e.subweapon.recovery)
-			setLater(e.playerState, "subweaponing", false, e.subweapon.recovery)
+			concurrency:setValue(e.subweapon, "ready", true, e.subweapon.recovery)
+			concurrency:setValue(e.playerState, "subweaponing", false, e.subweapon.recovery)
 		end
 		
 		-- stop attacking if necessary

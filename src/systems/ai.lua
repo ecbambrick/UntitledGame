@@ -1,6 +1,7 @@
 --[[----------------------------------------------------------------------------
 --]]----------------------------------------------------------------------------
 
+local Concurrency = require("../lib.concurrency")
 local defaultAI
 
 ---------------------------------------------------------- MAIN UPDATE FUNCTION
@@ -8,40 +9,42 @@ local defaultAI
 --[[
 asdasdsad
 --]]
-secs.updatesystem("ai", 250, function(dt)
+secs:UpdateSystem("ai", function(dt)
 
-	-- get player
-	local player = secs.query("players")[1]
+	-- get player and camera
+	local player = secs:queryFirst("pos playerInput playerState")
+	local camera = secs:queryFirst("camera pos")
+	local stage = secs:queryFirst("stage")
 
 	-- get stage dimensions
-	local stage = secs.query("stages")[1]
 	if stage then stage = stage.stage.map end
-	local stageWidth = stage.width * stage.tileWidth or WINDOW_WIDTH
-	local stageHeight = stage.height * stage.tileHeight or WINDOW_HEIGHT
+	local stageWidth = stage.width * stage.tileWidth or camera.camera.width
+	local stageHeight = stage.height * stage.tileHeight or camera.camera.height
 	
 	-- enemy ai
-	for i,e in ipairs(secs.query("enemies")) do
+	for e in pairs(secs:query("pos enemyState")) do
 		if e.sinusoidal then
 			e.sinusoidal.time = e.sinusoidal.time + dt
 			e.pos.y = math.cos(e.sinusoidal.time * e.sinusoidal.frequency * math.pi) * e.sinusoidal.amplitude + 128
 		end
 		if e.enemyState.behaviour == "attack" and player ~= nil then
-			defaultAI(e, player, dt)
+			defaultAI(e, player, camera, dt)
 		end
 	end
 	
 	-- subweapon ai
-	for i,e in ipairs(secs.query("subweapons")) do
-		if e.pos.x < -16 or e.pos.x > stageWidth then secs.delete(e) end
+	for e in pairs(secs:query("pos isSubweapon")) do
+		if e.pos.x < -16 or e.pos.x > stageWidth then secs:delete(e) end
 	end
 	
 end)
 
 --------------------------------------------------------------------------------
 
-function defaultAI(e, player, dt)
+function defaultAI(e, player, camera, dt)
 
-	local previousAnimation = e.animation.current
+	local speed = 50
+	local onCamera = e.pos.x < camera.pos.x + camera.camera.width and e.pos.x + e.pos.width > camera.pos.x
 	local distance = math.abs(e.pos.x - player.pos.x)
 	local passiveDistance = e.enemyState.passiveDistance
 	
@@ -51,7 +54,7 @@ function defaultAI(e, player, dt)
 	
 	-- idle state
 	if e.enemyState.state == "idle" then
-		if distance < WINDOW_WIDTH/2 then e.enemyState.state = "aggressive" end
+		if onCamera then e.enemyState.state = "aggressive" end
 	end
 	
 	-- passive state
@@ -59,17 +62,17 @@ function defaultAI(e, player, dt)
 		if distance <= passiveDistance+1 and distance >= passiveDistance-1 then
 			e.vel.x = 0
 		elseif distance < passiveDistance then
-			e.vel.x = -50*e.pos.dx
+			e.vel.x = -speed*e.pos.dx
 		else
-			e.vel.x = 50*e.pos.dx
+			e.vel.x = speed*e.pos.dx
 		end
 	end
 	
 	-- aggressive state
 	if e.enemyState.state == "aggressive" then
-		if distance > WINDOW_WIDTH/2 then e.enemyState.state = "idle"
-		elseif distance < 24 then e.enemyState.state = "attack" end
-		e.vel.x = 50*e.pos.dx
+		-- if not onCamera then e.enemyState.state = "idle"
+		if distance < 26 then e.enemyState.state = "attack" end
+		e.vel.x = speed*e.pos.dx
 	end
 	
 	-- attack state
@@ -82,10 +85,10 @@ function defaultAI(e, player, dt)
 		end
 		e.vel.x = 0
 		e.enemyState.state = "attacking"
-		runCoroutine(function(distance, state)
-			wait(0.6)
+		Concurrency.runFunction(function(distance, state)
+			concurrency:sleep(0.6)
 			state.state = "passive"
-			wait(math.random(1,7)/10)
+			concurrency:sleep(math.random(1,7)/10)
 			state.state = "idle"
 		end, distance, e.enemyState)
 	end

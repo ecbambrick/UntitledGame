@@ -1,113 +1,107 @@
---[[----------------------------------------------------------------------------
---]]----------------------------------------------------------------------------
+local advancedTiledLoader = require("lib.AdvTiledLoader.loader")
+local utility = require("lib.utility")
+local TiledMapSystem, deleteEntities, loadEntities, loadRooms, loadStage, roomAt
 
-local AdvancedTiledLoader = require("lib.AdvTiledLoader.loader")
+--------------------------------------------------------------------------------
+-- mention how it only bothers with the first 
+--------------------------------------------------------------------------------
+function TiledMapSystem(ecs)
+	ecs:UpdateSystem("tiledmap", function(dt)
+		local camera = ecs:queryFirst("camera").camera
+		local stage = ecs:queryFirst("stage").stage
+		local playerPosition = ecs:queryFirst("playerInput playerState").pos
+		
+		if not stage.map then
+			loadStage(stage)
+		end
+		
+		local currentRoom = roomAt(stage, playerPosition)
+		
+		if stage.room ~= currentRoom then
+			stage.room = currentRoom
+			deleteEntities(ecs, stage)
+			loadRoom(ecs, stage)
+		end
+	end)
+end
 
-local loadTiledMap, loadTiles, loadEntities, loadRoom, getRoom
-local unloadTiledMap, unloadTiles, unloadEntities
-
----------------------------------------------------------- MAIN UPDATE FUNCTION
-
---[[
-Load and unload tiled maps with AdvancedTiledLoader
---]]
-secs.updatesystem("tiledmap", 50, function(dt)
-
-	local e = secs.query("stages")[1]
-	local player = secs.query("players")[1]
-	
-	-- check if room needs to be updated
-	if e.stage.map then
-		updateRoom(e.stage, player)
-	end
-
-	-- load/unload stage
-	if e.stage.unload and e.stage.map then
-		unloadTiledMap(e.stage)
-	end
-	if e.stage.loadStage and not e.stage.map then
-		loadTiledMap(e.stage)
-	end
-	if e.stage.loadRoom and e.stage.map then
-		unloadEntities(e.stage)
-		loadRoom(e.stage)
-	end
-end)
-
----------------------------------------------------------- TILED MAP MANAGEMENT
-
-function updateRoom(stage, player)
-	local currentRoom, rooms = stage.room, stage.map("rooms").objects
-	for i,room in ipairs(rooms) do
-		if  player.pos.x + player.pos.width/2 < room.x + room.width 
-		and player.pos.x + player.pos.width/2 > room.x
-		and player.pos.y + player.pos.height < room.y + room.height 
-		and player.pos.y + player.pos.height > room.y then
-			stage.room = room.name
-			if stage.room ~= currentRoom then
-				stage.loadRoom = true
+--------------------------------------------------------------------------------
+-- Load all entities in the given room of the given stage.
+-- @param roomName	The name of the room.
+-- @param stage		The stage.
+--------------------------------------------------------------------------------
+function loadEntities(ecs, room, stage)
+	for _, object in ipairs(stage.map("entities").objects) do
+		if utility.math.within(object, room) then
+			local entityType = object.properties.value
+			local e
+		
+			-- Load enemy entity.
+			if object.type == "enemy" then
+				e = factory[entityType](object.x, object.y+1)
 			end
+			
+			-- Load item entity.
+			if object.type == "item" then
+				e = Item(object.x, object.y+1, entityType)
+			end
+			
+			ecs:attach(e, { roomEntity = {} })
 		end
 	end
 end
 
--- load tiled map file and entities
-function loadTiledMap(stage)
-	-- load map
-    stage.loadStage = false
-	stage.loadRoom = true
-    stage.map = AdvancedTiledLoader.load(stage.path)
+--------------------------------------------------------------------------------
+-- asdasd
+--------------------------------------------------------------------------------
+function loadRoom(ecs, stage)
+	local rooms = stage.map("rooms").objects
+	local camera = ecs:queryFirst("camera pos").camera
+	local room = utility.table.find(rooms, function(a)
+		return a.name == stage.room 
+	end)
+
+	-- Update the camera position.
+	camera.x1 = room.x
+	camera.y1 = room.y
+	camera.x2 = room.x + room.width
+	camera.y2 = room.y + room.height
+
+	loadEntities(ecs, room, stage)
+end
+
+--------------------------------------------------------------------------------
+-- Loads the given stage through the Advanced Tiled Loader library.
+-- @param stage		The stage.
+--------------------------------------------------------------------------------
+function loadStage(stage)
+    stage.map = advancedTiledLoader.load(stage.path)
     stage.map.drawObjects = false
 end
 
-function loadRoom(stage)
-
-	-- get room
-	local rooms, room = stage.map("rooms").objects, nil
-	for i = 1, #rooms do
-		if rooms[i].name == stage.room then
-			room = rooms[i]
-		end
-	end
-	
-	-- set up camera
-	local camera = secs.query("cameras")[1]
-	if camera then
-		camera.camera.x1 = room.x
-		camera.camera.y1 = room.y
-		camera.camera.x2 = room.x + room.width
-		camera.camera.y2 = room.y + room.height
-	end
-	
-	stage.loadRoom = false
-	loadEntities(room, stage)
-	
-end
-
--- unload tiled map and destroy map entities
-function unloadTiledMap(stage)
-	stage.unload = false
-	stage.map = nil
-	unloadEntities(stage)
-end
-
-------------------------------------------------------------- ENTITY MANAGEMENT
-
--- create an entity for each entity-layer object in the map
-function loadEntities(room, stage)
-	for i,entity in ipairs(stage.map("entities").objects) do
-		if entity.properties.room == room.name then
-			if entity.type == "enemy" then
-				local e = secs.entity.enemy(entity.x, entity.y+1)
-				secs.attach(e, "roomEntity")
-			end
+--------------------------------------------------------------------------------
+-- Returns the room at the given position for the given stage.
+-- @param stage				The stage.
+-- @param position			The position in the stage.
+-- @return					The name of the room or nil if no room is found.
+--------------------------------------------------------------------------------
+function roomAt(stage, position)
+	local rooms = stage.map("rooms").objects
+	for _, room in ipairs(rooms) do
+		if utility.math.within(position, room) then
+			return room.name
 		end
 	end
 end
 
--- destroy each entity created by the map
-function unloadEntities(stage)
-	for i,e in ipairs(secs.query("roomEntities")) do
-		secs.delete(e)
+--------------------------------------------------------------------------------
+-- Delete all entities that belong to the current room.
+-- @param ecs		The entity component system.
+--------------------------------------------------------------------------------
+function deleteEntities(ecs)
+	for entity in pairs(ecs:query("roomEntity")) do
+		ecs:delete(entity)
 	end
 end
+
+return TiledMapSystem

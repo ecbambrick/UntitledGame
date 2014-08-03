@@ -10,8 +10,8 @@ end
 --[[
 Take keyboard input and create a set of input commands to be processed later
 --]]
-secs.updatesystem("playerInput", 100, function(dt)
-	for i,e in ipairs(secs.query("controllablePlayers")) do
+secs:UpdateSystem("playerInput", function(dt)
+	for e in pairs(secs:query("playerInput playerState")) do
 	
 		-- shorthand
 		local queue = e.playerInput.queue

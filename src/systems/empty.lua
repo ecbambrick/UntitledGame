@@ -8,7 +8,7 @@
 --[[
 asdasdsad
 --]]
-secs.updatesystem("empty", 10000, function(dt)
-	for i,e in ipairs(secs.query("animatedCollidables")) do
+secs:Updatesystem("empty", function(dt)
+	for e in pairs(secs.query("empty")) do
 	end
 end)

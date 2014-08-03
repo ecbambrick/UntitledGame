@@ -28,7 +28,7 @@ return {
 		hitboxes = {{ type = "active", width = 10, height = 25, offsetX = 3, offsetY = 6 }}
 	},
 	
-	-- attacking (5,6,7,8)
+	-- attacking (5,6,7,8,9,10) (11,12)
 	{	sprite = { quad = newQuad(16*0, 32*1, 32, 32, w, h), 	offsetX = 0, offsetY = 0 },
 		hitboxes = {{ type = "active", width = 10, height = 25, offsetX = 3, offsetY = 6 }}
 	},
@@ -46,6 +46,14 @@ return {
 	},
 	{	sprite = { quad = newQuad(16*6, 32*0, 32, 32, w, h), 	offsetX = 0,  offsetY = 0 },
 		hitboxes = {{ type = "active", width = 10, height = 25, offsetX = 3,  offsetY = 6 },
+		            { type = "attack", width = 20, height = 7,  offsetX = 11, offsetY = 8 }}
+	},
+	{	sprite = { quad = newQuad(16*0, 32*2, 48, 32, w, h), 	offsetX = 0,  offsetY = 0 },
+		hitboxes = {{ type = "active", width = 36, height = 25, offsetX = 3,  offsetY = 6 },
+		            { type = "attack", width = 20, height = 7,  offsetX = 11, offsetY = 8 }}
+	},
+	{	sprite = { quad = newQuad(16*3, 32*2, 48, 32, w, h), 	offsetX = 0,  offsetY = 0 },
+		hitboxes = {{ type = "active", width = 36, height = 25, offsetX = 3,  offsetY = 6 },
 		            { type = "attack", width = 20, height = 7,  offsetX = 11, offsetY = 8 }}
 	},
 }
