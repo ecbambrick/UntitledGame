@@ -1,14 +1,12 @@
---[[----------------------------------------------------------------------------
---]]----------------------------------------------------------------------------
-
+local DebugSystem = {}
 local renderHitboxes, withinView
 
----------------------------------------------------------- MAIN UPDATE FUNCTION
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+function DebugSystem:draw()
+	local secs = self.secs
+	local debugger = self.debugger
 
---[[
-asdasdsad
---]]
-secs:RenderSystem("debug", function()
 	if not debugger.active then return end
 
 	-- set camera
@@ -64,7 +62,7 @@ secs:RenderSystem("debug", function()
 	-- for i,e in ipairs(debugger.messages) do
 		-- love.graphics.print(message, 10, 40 + i*15)
 	-- end
-end)
+end
 
 --[[
 draw each of the current animation's current frame's hitboxes to the screen
@@ -91,4 +89,16 @@ function renderHitboxes(e)
 		love.graphics.setColor(255,255,255,255)
 		
 	end
+end
+
+return function(secs, debugger)
+	local self = {}
+	
+	--
+	self.secs = secs
+	
+	--
+	self.debugger = debugger
+	
+	return setmetatable(self, { __index = DebugSystem })
 end

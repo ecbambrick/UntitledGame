@@ -1,15 +1,13 @@
---[[----------------------------------------------------------------------------
---]]----------------------------------------------------------------------------
+local Concurrency = require("lib.concurrency")
 
-local Concurrency = require("../lib.concurrency")
+local AiSystem = {}
 local defaultAI
 
----------------------------------------------------------- MAIN UPDATE FUNCTION
-
---[[
-asdasdsad
---]]
-secs:UpdateSystem("ai", function(dt)
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+function AiSystem:update(dt)
+	local secs = self.secs
+	local concurrency = self.concurrency
 
 	-- get player and camera
 	local player = secs:queryFirst("pos playerInput playerState")
@@ -28,7 +26,7 @@ secs:UpdateSystem("ai", function(dt)
 			e.pos.y = math.cos(e.sinusoidal.time * e.sinusoidal.frequency * math.pi) * e.sinusoidal.amplitude + 128
 		end
 		if e.enemyState.behaviour == "attack" and player ~= nil then
-			defaultAI(e, player, camera, dt)
+			defaultAI(e, player, camera, concurrency, dt)
 		end
 	end
 	
@@ -37,11 +35,11 @@ secs:UpdateSystem("ai", function(dt)
 		if e.pos.x < -16 or e.pos.x > stageWidth then secs:delete(e) end
 	end
 	
-end)
+end
 
 --------------------------------------------------------------------------------
 
-function defaultAI(e, player, camera, dt)
+function defaultAI(e, player, camera, concurrency, dt)
 
 	local speed = 50
 	local onCamera = e.pos.x < camera.pos.x + camera.camera.width and e.pos.x + e.pos.width > camera.pos.x
@@ -85,12 +83,12 @@ function defaultAI(e, player, camera, dt)
 		end
 		e.vel.x = 0
 		e.enemyState.state = "attacking"
-		Concurrency.runFunction(function(distance, state)
+		Concurrency.runFunction(function(state)
 			concurrency:sleep(0.6)
 			state.state = "passive"
 			concurrency:sleep(math.random(1,7)/10)
 			state.state = "idle"
-		end, distance, e.enemyState)
+		end, e.enemyState)
 	end
 	
 		if e.mortalState.invincible then
@@ -99,4 +97,16 @@ function defaultAI(e, player, camera, dt)
 			end
 		end
 
+end
+
+return function(secs, concurrency)
+	local self = {}
+	
+	--
+	self.concurrency = concurrency
+	
+	--
+	self.secs = secs
+	
+	return setmetatable(self, { __index =  AiSystem })
 end

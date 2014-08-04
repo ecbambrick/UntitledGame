@@ -1,7 +1,5 @@
---[[----------------------------------------------------------------------------
---]]----------------------------------------------------------------------------
-
-require("...lib.math")
+require("lib.math")
+local PhysicsSystem = {}
 
 -- helper functions
 local applyFriction, applyGravity, updatePositionX, updatePositionY
@@ -9,12 +7,10 @@ local preventHorizontalCollisions, preventVerticalCollisions
 local resolveCollisionLeft, resolveCollisionRight
 local resolveCollisionDown, resolveCollisionUp
 
--- physics properties
-local gravity, frict = 900, 600
-
 ---------------------------------------------------------- MAIN UPDATE FUNCTION
 
-secs:UpdateSystem("physics", function(dt)
+function PhysicsSystem:update(dt)
+	local secs = self.secs
 	
 	-- load current map
 	local map = secs:queryFirst("stage").stage.map
@@ -28,24 +24,24 @@ secs:UpdateSystem("physics", function(dt)
 	for e in pairs(secs:query("pos vel")) do
 		
 		-- x direction
-		applyFriction(e, dt)
+		applyFriction(e, self.friction, dt)
 		preventHorizontalCollisions(e, map, dt)
 		updatePositionX(e, dt)
 		updateHitboxes(e)
 		
 		-- y direction
-		applyGravity(e, dt)
+		applyGravity(e, self.gravity, dt)
 		preventVerticalCollisions(e, map, dt)
 		updatePositionY(e, dt)
 		updateHitboxes(e)
 		
 	end
 	
-end)
+end
 
 --------------------------------------------------------------- PHYSICAL FORCES 
 
-function applyFriction(e, dt)
+function applyFriction(e, frict, dt)
 	if e.physicsState and e.physicsState.hasFriction then
 		local originalSign = math.sign(e.vel.x)
 		e.vel.x = e.vel.x - frict * math.sign(e.vel.x) * dt
@@ -55,7 +51,7 @@ function applyFriction(e, dt)
 	end
 end
 	
-function applyGravity(e, dt)
+function applyGravity(e, gravity, dt)
 	if e.physicsState and e.physicsState.hasGravity then
 		e.physicsState.onGround = false
 		e.physicsState.onOneway = false
@@ -206,4 +202,19 @@ function getPushbox(e)
 			end
 		end
 	end
+end
+
+return function(secs)
+	local self = {}
+	
+	--
+	self.gravity = 900
+	
+	--
+	self.friction = 600
+	
+	--
+	self.secs = secs
+	
+	return setmetatable(self, { __index = PhysicsSystem })
 end

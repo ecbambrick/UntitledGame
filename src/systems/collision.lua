@@ -1,19 +1,15 @@
---[[----------------------------------------------------------------------------
---]]----------------------------------------------------------------------------
-
-local lib = {
-	concurrency = require("../lib.concurrency")
-}
-
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+local Concurrency = require("lib.concurrency")
+local CollisionSystem = {}
 local resolveCollision, updateHitboxCoordinates
 local flashRed, killEnemy
 
----------------------------------------------------------- MAIN UPDATE FUNCTION
-
---[[
-asdasdsad
---]]
-secs:UpdateSystem("collision", function(dt)
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+function CollisionSystem:update(dt)
+	local secs = self.secs
+	local concurrency = self.concurrency
 
 	local space = secs:queryFirst("spatialhash").spatialhash.map
 	local collidableEntities = secs:query("hitboxes pos")
@@ -34,7 +30,7 @@ secs:UpdateSystem("collision", function(dt)
 				if a ~= b
 				and h1.x1 < h2.x2 and h1.x2 > h2.x1 
 				and h1.y1 < h2.y2 and h1.y2 > h2.y1 then
-					resolveCollision(a, b, h1.type, h2.type)
+					resolveCollision(secs, concurrency, a, b, h1.type, h2.type)
 				end
 			end
 		end
@@ -47,7 +43,7 @@ secs:UpdateSystem("collision", function(dt)
 		end
 	end
 	
-end)
+end
 
 -------------------------------------------------------------- HELPER FUNCTIONS
 
@@ -68,8 +64,8 @@ end
 
 --------------------------------------------------- RESOLUTION HELPER FUNCTIONS
 
-function flashRed(e)
-	lib.concurrency.runFunction(function(e)
+function flashRed(secs, concurrency, e)
+	Concurrency.runFunction(function(secs, concurrency, e)
 		if not e.color then
 			secs:attach(e, { color = { rgb = { 255, 0, 0, 255 } } })
 		end
@@ -80,17 +76,17 @@ function flashRed(e)
 			concurrency:sleep(0.1)
 		end
 		e.color.rgb = { 255, 255, 255, 255 }
-	end, e)
+	end, secs, concurrency, e)
 end
 
-function killEnemy(e)
-	flashRed(e)
+function killEnemy(secs, concurrency, e)
+	flashRed(secs, concurrency, e)
 	if e.mortalState then
 		e.mortalState.invincible = true
 		e.mortalState.recovery:reset()
 		e.mortalState.health = e.mortalState.health - 1
 		if e.mortalState.health <= 0 then
-			lib.concurrency.runFunction(function(e)
+			Concurrency.runFunction(function(e)
 				e.pos.y = e.pos.y + 4
 				secs:detach(e, "animation", "enemyState", "color", "vel", "hitboxes")
 				secs:attach(e, { sprite = { image = explosion } })
@@ -103,17 +99,17 @@ end
 
 ---------------------------------------------------------- COLLISION RESOLUTION
 
-function resolveCollision(a, b, aType, bType)
+function resolveCollision(secs, concurrency, a, b, aType, bType)
 
 	-- player attacks enemy
 	if a.playerState and b.enemyState and aType == "attack" and bType == "active"
 	and b.mortalState and not b.mortalState.invincible then
-		killEnemy(b)
+		killEnemy(secs, concurrency, b)
 	end
 	
 	if a.enemyState and b.playerState and bType ~= "attack"
 	and b.mortalState and not b.mortalState.invincible then
-		flashRed(b)
+		flashRed(secs, concurrency,b)
 		b.vel.y = -150
 		b.vel.x = -500*b.pos.dx
 		b.mortalState.invincible = true
@@ -122,11 +118,21 @@ function resolveCollision(a, b, aType, bType)
 	
 	if a.isSubweapon and b.enemyState then
 		secs:delete(a)
-		killEnemy(b)
+		killEnemy(secs, concurrency, b)
 	end
 	
 	if a.playerState and b.item then
 		secs:delete(b)
 	end
 
+end
+
+return function(secs, concurrency)
+	local self = {}
+	
+	self.concurrency = concurrency
+	
+	self.secs = secs
+	
+	return setmetatable(self, { __index = CollisionSystem })
 end

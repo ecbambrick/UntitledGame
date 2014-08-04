@@ -1,16 +1,11 @@
---[[----------------------------------------------------------------------------
---]]----------------------------------------------------------------------------
+local PlayerInputSystem = {}
 
-local function isDown(command)
-	return love.keyboard.isDown(command)
-end
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+function PlayerInputSystem:update(dt)
+	local secs = self.secs
+	local isDown = love.keyboard.isDown
 
------------------------------------------------------------------ MAIN FUNCTION
-
---[[
-Take keyboard input and create a set of input commands to be processed later
---]]
-secs:UpdateSystem("playerInput", function(dt)
 	for e in pairs(secs:query("playerInput playerState")) do
 	
 		-- shorthand
@@ -56,4 +51,15 @@ secs:UpdateSystem("playerInput", function(dt)
 			queue.attack = true
 		end
 	end
-end)
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+return function(secs)
+	local self = {}
+	
+	--
+	self.secs = secs
+	
+	return setmetatable(self, { __index = PlayerInputSystem })
+end

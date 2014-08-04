@@ -1,16 +1,11 @@
---[[----------------------------------------------------------------------------
---]]----------------------------------------------------------------------------
-
+local RenderSystem = {}
 local renderAnimation, renderHitboxes, renderHitbox, renderSprite, renderStage
 local withinView
 
----------------------------------------------------------- MAIN UPDATE FUNCTION
 
---[[
-asdasdsad
---]]
-secs:RenderSystem("render", function()
+function RenderSystem:draw(dt)
 
+	local secs = self.secs
 	-- set camera
 	local camera = secs:queryFirst("camera")
 	love.graphics.push()
@@ -20,15 +15,15 @@ secs:RenderSystem("render", function()
 	end
 	
 	-- draw each type of entity
-	for e in pairs(secs:query("stage"))   do renderStageBackground(e, camera) end
-	for e in pairs(secs:query("sprite"))  do renderSprite(e)          end
-	for e in pairs(secs:query("animation")) do renderAnimation(e)       end
-	for e in pairs(secs:query("stage"))   do renderStageForeground(e, camera) end
+	for e in pairs(secs:query("stage"))   	do renderStageBackground(e, camera) end
+	for e in pairs(secs:query("sprite"))  	do renderSprite(e)          		end
+	for e in pairs(secs:query("animation")) do renderAnimation(e)       		end
+	for e in pairs(secs:query("stage"))   	do renderStageForeground(e, camera) end
 	
 	-- unset camera
 	love.graphics.pop()
 	
-end)
+end
 
 -------------------------------------------------------------- HELPER FUNCTIONS
 
@@ -124,4 +119,15 @@ function withinView(x,y,w,h)
 	-- else
 		-- return false
 	-- end
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+return function(secs)
+	local self = {}
+	
+	-- asdasdasd
+	self.secs = secs
+	
+	return setmetatable(self, { __index = RenderSystem })
 end

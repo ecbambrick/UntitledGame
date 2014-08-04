@@ -1,14 +1,12 @@
---[[----------------------------------------------------------------------------
---]]----------------------------------------------------------------------------
+local PlayerStateSystem = {}
 
--- local ...
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+function PlayerStateSystem:update(dt)
+	local secs = self.secs
+	local factory = self.factory
+	local concurrency = self.concurrency
 
----------------------------------------------------------- MAIN UPDATE FUNCTION
-
---[[
-asdasdsad
---]]
-secs:UpdateSystem("playerState", function(dt)
 	for e in pairs(secs:query("playerInput playerState")) do
 		local onGround = e.physicsState.onGround
 		local ducking = e.playerState.ducking
@@ -130,4 +128,21 @@ secs:UpdateSystem("playerState", function(dt)
 		end
 		
 	end
-end)
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+return function(secs, factory, concurrency)
+	local self = {}
+	
+	--
+	self.secs = secs
+	
+	--
+	self.factory = factory
+	
+	--
+	self.concurrency = concurrency
+	
+	return setmetatable(self, { __index = PlayerStateSystem })
+end

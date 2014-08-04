@@ -1,17 +1,12 @@
---[[----------------------------------------------------------------------------
---]]----------------------------------------------------------------------------
-
+local AnimationSystem = {}
 local updateFrame, resetAnimation, updatePlayerAnimation, updateHitboxes
 local updateEnemyAnimation
 
----------------------------------------------------------- MAIN UPDATE FUNCTION
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+function AnimationSystem:update(dt)
+	local secs = self.secs
 
---[[
-asdasdsad
---]]
-
--- rename the functions to differntiate between animation and animation state
-secs:UpdateSystem("animation", function(dt)
 	for e in pairs(secs:query("playerState")) do
 		updatePlayerAnimation(e)
 	end
@@ -22,7 +17,7 @@ secs:UpdateSystem("animation", function(dt)
 		updateFrame(e, dt)
 		updateHitboxes(e, dt)
 	end
-end)
+end
 
 -------------------------------------------------------------- ANIMATION UPDATE
 
@@ -110,3 +105,13 @@ function updateEnemyAnimation(e)
 	if previousAnimation ~= e.animation.current then resetAnimation(e) end
 end
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+return function(secs)
+	local self = {}
+	
+	--
+	self.secs = secs
+	
+	return setmetatable(self, { __index = AnimationSystem })
+end

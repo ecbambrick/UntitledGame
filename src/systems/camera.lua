@@ -1,14 +1,10 @@
---[[----------------------------------------------------------------------------
---]]----------------------------------------------------------------------------
+local CameraSystem = {}
 
--- local ...
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+function CameraSystem:update(dt)
+	local secs = self.secs
 
----------------------------------------------------------- MAIN UPDATE FUNCTION
-
---[[
-asdasdsad
---]]
-secs:UpdateSystem("camera", function(dt)
 	for e in pairs(secs:query("camera")) do
 		local target = e.camera.target
 		if target then
@@ -20,4 +16,15 @@ secs:UpdateSystem("camera", function(dt)
 		if e.pos.x > e.camera.x2 - e.camera.width then e.pos.x = e.camera.x2 - e.camera.width end
 		if e.pos.y > e.camera.y2 - e.camera.height then e.pos.y = e.camera.y2 - e.camera.height end
 	end
-end)
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+return function(secs)
+	local self = {}
+	
+	--
+	self.secs = secs
+	
+	return setmetatable(self, { __index = CameraSystem })
+end

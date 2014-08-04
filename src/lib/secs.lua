@@ -56,7 +56,7 @@ local function registerEntityWithGroup(entity, group)
         if not entity[component] then
             meetsRequirements = false
             break
-		end
+        end
     end
     
 	if meetsRequirements then
@@ -176,8 +176,8 @@ end
 --------------------------------------------------------------------------------
 function EntityComponentSystem:draw()
     for _, system in pairs(self._renderSystems) do
-        if system.active then
-            system.update()
+        if system.isActive then
+            system:draw()
         end
     end
 end
@@ -201,9 +201,9 @@ function EntityComponentSystem:Entity(...)
 end
 
 --------------------------------------------------------------------------------
--- Return the list of entities of the provided type, or the list of all entities
--- if no type is provided.
--- @param entityTypeName	The name of the entity type to query by.
+-- Return the list of entities that satisfy the given query, or a list of all
+-- entities if no query is given.
+-- @param queryString		A whitespace-separated string of component names.
 -- @return              	The list of entities.
 --------------------------------------------------------------------------------
 function EntityComponentSystem:query(queryString)
@@ -220,13 +220,13 @@ function EntityComponentSystem:query(queryString)
 end
 
 --------------------------------------------------------------------------------
--- Return the first entity of the provided type for the current scene.
--- @param entityTypeName    The name of the entity type to query by.
--- @return              	The first entity of the given type or nil if there 
--- 							is no entity.
+-- Return the first entity that satisfies the given query.
+-- @param queryString		A whitespace-separated string of component names.
+-- @return              	The first entity that satisfies the query or nil
+--							if no entity is found.
 --------------------------------------------------------------------------------
-function EntityComponentSystem:queryFirst(entityTypeName)
-    return next(self:query(entityTypeName))
+function EntityComponentSystem:queryFirst(queryString)
+    return next(self:query(queryString))
 end
 
 --------------------------------------------------------------------------------
@@ -235,13 +235,10 @@ end
 -- @param name      The name of the system.
 -- @param callback  The callback function for the system.
 --------------------------------------------------------------------------------
-function EntityComponentSystem:RenderSystem(name, callback)
-    local system = {
-        active = true,
-        name = name,
-        update = callback
-    }
-    table.insert(self._renderSystems, system)
+function EntityComponentSystem:System(name, system)
+	if system.isActive == nil then system.isActive = true end
+	if system.update then table.insert(self._updateSystems, system) end
+	if system.draw   then table.insert(self._renderSystems, system) end
 end
 
 --------------------------------------------------------------------------------
@@ -250,25 +247,10 @@ end
 --------------------------------------------------------------------------------
 function EntityComponentSystem:update(dt)
     for _, system in pairs(self._updateSystems) do
-        if system.active then
-            system.update(dt)
+        if system.isActive then
+            system:update(dt)
         end
     end
-end
-
---------------------------------------------------------------------------------
--- Create and register a new update system. Systems are called in the order in
--- which they are created.
--- @param name      The name of the system.
--- @param callback  The callback function for the system.
---------------------------------------------------------------------------------
-function EntityComponentSystem:UpdateSystem(name, callback)
-    local system = {
-        active = true,
-        name = name,
-        update = callback
-    }
-    table.insert(self._updateSystems, system)
 end
 
 --------------------------------------------------------------------------------
@@ -282,10 +264,10 @@ return function()
     -- contains a tables of default component properties.
     self._components = {}
     
-    -- The table of entity groups. The key is the name of the entity group and
-    -- each value contains a table of entities that belong to that group.
-    -- Each group contains an entity type and a table of entities that are of
-    -- that type. The group named "all" contains all entities.
+    -- The table of entity groups. Each group is used as a cache for query 
+	-- results. The key is the query that the group belongs to and each value
+	-- contains a table of components from the query and a table entities that
+	-- satisfy the query. The group named "all" contains all entities.
     self._entityGroups = {}
     self._entityGroups.all = { components = {}, entities = {} }
     

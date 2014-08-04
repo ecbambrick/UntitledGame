@@ -1,6 +1,7 @@
-local advancedTiledLoader = require("lib.AdvTiledLoader.loader")
-local utility = require("lib.utility")
-local TiledMapSystem, deleteEntities, loadEntities, loadRooms, loadStage, roomAt
+local advancedTiledLoader	= require("lib.AdvTiledLoader.loader")
+local utility				= require("lib.utility")
+local TiledMapSystem		= {}
+local deleteEntities, loadEntities, loadRoom, loadStage, roomAt, setCameraBounds
 
 --------------------------------------------------------------------------------
 -- The tiled map system manages the following: 
@@ -8,29 +9,30 @@ local TiledMapSystem, deleteEntities, loadEntities, loadRooms, loadStage, roomAt
 --  * Determining the active map room.
 --  * Loading entities for the current room.
 --------------------------------------------------------------------------------
-function TiledMapSystem(ecs)
-	ecs:UpdateSystem("tiledmap", function(dt)
-		for stage in pairs(ecs:query("stage")) do
-			local stage = stage.stage
-			local currentRoom
+function TiledMapSystem:update(dt)
+	local ecs = self.ecs
+	local factory = self.factory
 
-			if not stage.map then
-				loadStage(stage)
-			end
+	for stage in pairs(ecs:query("stage")) do
+		local stage = stage.stage
+		local currentRoom
+
+		if not stage.map then
+			loadStage(stage)
+		end
+		
+		for player in pairs(ecs:query("playerInput pos")) do
+			currentRoom = roomAt(stage, player.pos)
+		end
+		
+		if currentRoom and stage.room ~= currentRoom then
+			loadRoom(ecs, factory, currentRoom, stage)
 			
-			for player in pairs(ecs:query("playerInput pos")) do
-				currentRoom = roomAt(stage, player.pos)
-			end
-			
-			if stage.room ~= currentRoom then
-				loadRoom(ecs, e, currentRoom, stage)
-				
-				for camera in pairs(ecs:query("camera pos")) do
-					updateCameraBounds(currentRoom, camera.camera)
-				end
+			for camera in pairs(ecs:query("camera pos")) do
+				setCameraBounds(currentRoom, camera.camera)
 			end
 		end
-	end)
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -48,7 +50,7 @@ end
 -- @param roomName	The name of the room.
 -- @param stage		The stage.
 --------------------------------------------------------------------------------
-function loadEntities(ecs, e, room, stage)
+function loadEntities(ecs, factory, room, stage)
 	for _, object in ipairs(stage.map("entities").objects) do
 		if utility.math.within(object, room) then
 			local entityType = object.properties.value
@@ -75,10 +77,10 @@ end
 -- @param room		
 -- @param stage		
 --------------------------------------------------------------------------------
-function loadRoom(ecs, e, room, stage)
+function loadRoom(ecs, factory, room, stage)
 	stage.room = room
 	deleteEntities(ecs, stage)
-	loadEntities(ecs, e, room, stage)
+	loadEntities(ecs, factory, room, stage)
 end
 
 --------------------------------------------------------------------------------
@@ -110,7 +112,7 @@ end
 -- @param room		The room.
 -- @param camera	The camera.
 --------------------------------------------------------------------------------
-function updateCameraBounds(room, camera)
+function setCameraBounds(room, camera)
 	camera.x1 = room.x
 	camera.y1 = room.y
 	camera.x2 = room.x + room.width
@@ -118,4 +120,17 @@ function updateCameraBounds(room, camera)
 end
 
 --------------------------------------------------------------------------------
-return TiledMapSystem
+-- Constructs a new instance of the tiled map system.
+-- @return A new instance of the tiled map system.
+--------------------------------------------------------------------------------
+return function(ecs, factory)
+	local self = {}
+	
+	-- asdjlaksjdlkajsdl
+	self.ecs = ecs
+	
+	-- asdkjhakjsdhkjsahd
+	self.factory = factory
+	
+	return setmetatable(self, { __index = TiledMapSystem })
+end
