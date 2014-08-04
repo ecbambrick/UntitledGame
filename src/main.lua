@@ -1,6 +1,13 @@
-concurrency	= require('lib.concurrency')()
-secs			= require('lib.secs')()
-debugger		= require('lib.debugger')()
+local Concurrency	= require('lib.concurrency')
+local Secs			= require('lib.secs')
+local Debugger		= require('lib.debugger')
+local components	= require('components')
+local Entities		= require('entities')
+
+concurrency	= Concurrency()
+secs		= Secs()
+debugger	= Debugger()
+factory		= Entities(secs)
 
 --------------------------------------------------------------------------------
 -- Load game.
@@ -20,9 +27,12 @@ function love.load()
     frameData3	= require("framedata.enemy1")
     frameData4	= require("framedata.enemy2")
 	
+	-- Initialize components.
+	for name, data in pairs(components) do
+		secs:Component(name, data)
+	end
+	
 	-- Entities, components, and systems
-	require("components")(secs)
-	require("entities")(secs)
 	require("systems.tiledmap")(secs)
 	require("systems.systeminput")
 	require("systems.playerinput")
@@ -36,10 +46,10 @@ function love.load()
 	require("systems.debug")
 	
     -- Initialize game objects.	
-    local player = Player(secs, 24*16, 19*16)
-                   Camera(secs, player.pos)
-				   SpatialMap(secs, 32)
-				   Stage(secs, "assets/area1.tmx", "room3", true)
+    local player = factory:Player(24*16, 19*16)
+                   factory:Camera(player.pos)
+				   factory:SpatialMap(32)
+				   factory:Stage("assets/area1.tmx", true)
 end
 
 --------------------------------------------------------------------------------
@@ -53,9 +63,9 @@ function love.update(dt)
     -- Slow down or speed up the game while tab is held down for debugging.
     if love.keyboard.isDown("tab") then
         if love.keyboard.isDown("lshift") then
-            dt = 0.0001
+            dt = dt / 5
         else
-            dt = 1/30
+            dt = dt * 5
         end
     end
     

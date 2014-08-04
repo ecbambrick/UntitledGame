@@ -105,7 +105,7 @@ secs:UpdateSystem("playerState", function(dt)
 		
 		-- subweapon
 		if not attacking and input.subweapon and e.subweapon.ready then
-			factory[e.subweapon.current](e.pos.x + e.pos.dx * 10, e.pos.y + 4, e.pos.dx)
+			factory[e.subweapon.current](factory, e.pos.x + e.pos.dx * 10, e.pos.y + 4, e.pos.dx)
 			e.playerState.subweaponing = true
 			e.subweapon.ready = false
 			concurrency:setValue(e.subweapon, "ready", true, e.subweapon.recovery)

@@ -1,8 +1,7 @@
 local newSpatialMap = require("lib.spatialmap")
 local newAnimation  = require("lib.animation")
 local newTimer      = require("lib.timer")
-
-return function(secs)
+local Entities		= {}
 
 ------------------------------------------------------------------ FUNDAMENTALS
 
@@ -10,8 +9,8 @@ return function(secs)
 targets the position component of another entity and takes a set of
 x,y coordinates as boundary limits to the camera's movement
 --]]
-Camera = function(secs, target, x1, y1, x2, y2)
-    return secs:Entity({ 
+function Entities:Camera(target, x1, y1, x2, y2)
+    return self._ecs:Entity({ 
 		pos = {},
 		camera = {
             target = target,
@@ -28,8 +27,8 @@ the map for an area
 room is the name of the map room the game is currently focused on
 load determines whether or not to load the map on the next frame
 --]]
-Stage = function(secs, filePath, room, load)
-    return secs:Entity({
+function Entities:Stage(filePath, room, load)
+    return self._ecs:Entity({
         stage = { 
             path = filePath, 
             room = room or "1", 
@@ -41,8 +40,8 @@ end
 --[[
 a spatial hash map for organizing physical entities
 --]]
-SpatialMap = function(secs, size)
-    return secs:Entity({
+function Entities:SpatialMap(size)
+    return self._ecs:Entity({
         spatialhash = {
             map = newSpatialMap(size)
         }
@@ -54,13 +53,12 @@ end
 --[[
 travels forward until colliding with an enemy or going offscreen
 --]]
-factory = {}
-factory.knife = function(x, y, dx)
+function Entities:Knife(x, y, dx)
 	x = x or 0
 	y = y or 0
 	dx = dx or 1
 	
-    return secs:Entity({
+    return self._ecs:Entity({
         isSubweapon = {},
         pos = { 
             x = x, 
@@ -89,8 +87,8 @@ end
 --[[
 the player
 --]]
-Player = function(secs, x, y)
-    return secs:Entity({
+function Entities:Player(x, y)
+    return self._ecs:Entity({
         pos = { 
             x = x, 
             y = y,
@@ -98,7 +96,7 @@ Player = function(secs, x, y)
             height = 32
         },
         subweapon = { 
-            current = "knife"
+            current = "Knife"
         },
         attackState = { 
             timer = newTimer(0.45)
@@ -152,8 +150,8 @@ end
 --[[
 generic enemy, this needs to be renamed oce more enemies are added
 --]]
-factory.enemy = function(x,y)
-    return secs:Entity({
+function Entities:Enemy(x,y)
+    return self._ecs:Entity({
         pos = { 
             x = x, 
             y = y,
@@ -181,8 +179,8 @@ factory.enemy = function(x,y)
     })
 end
 
-factory.enemy2 = function(x,y)
-    return secs:Entity({
+function Entities:Enemy2(x,y)
+    return self._ecs:Entity({
         pos = { 
             x = x, 
             y = y,
@@ -210,8 +208,8 @@ end
 --[[
 item???
 --]]
-Item = function(x, y, value)
-    return secs:Entity({
+function Entities:Item(x, y, value)
+    return self._ecs:Entity({
         pos = { 
             x = x, 
             y = y,
@@ -234,4 +232,9 @@ Item = function(x, y, value)
 	})
 end
 
+--------------------------------------------------------------------------------
+return function(ecs)
+	local self = {}
+	self._ecs = ecs
+	return setmetatable(self, { __index = Entities })
 end
