@@ -28,10 +28,26 @@ function utility.math.getCenter(object)
 end
 
 --------------------------------------------------------------------------------
+-- Returns true if the given value exists in the given table; otherwise, false.
+-- @param t             The table.
+-- @param value         The value to check for.
+-- @return              True if the value exists in the table; otherwise, false.
+--------------------------------------------------------------------------------
+function utility.table.contains(t, value)
+    for i, v in pairs(t) do
+        if v == value then
+            return true
+        end
+    end
+    
+    return false
+end
+
+--------------------------------------------------------------------------------
 -- Returns the value of the table element that satisfies the given expression.
 -- The expression function must return true or false.
 -- @param t             The table.
--- @param expression    The expression function to check against
+-- @param expression    The expression function to check against.
 -- @return              The first element that satifies the expression, or nil 
 --                      if no element is found.
 --------------------------------------------------------------------------------
