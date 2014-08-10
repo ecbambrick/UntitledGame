@@ -27,6 +27,15 @@ function utility.math.getCenter(object)
     }
 end
 
+--------------------------------------------------------------------------------
+-- Removes all values from the given table.
+-- @param t     The table.
+--------------------------------------------------------------------------------
+function utility.table.clear(t)
+    for k in pairs(t) do
+        t[k] = nil
+    end
+end
 
 --------------------------------------------------------------------------------
 -- Returns true if the given value exists in the given table; otherwise, false.
