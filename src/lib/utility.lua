@@ -27,20 +27,32 @@ function utility.math.getCenter(object)
     }
 end
 
+
 --------------------------------------------------------------------------------
 -- Returns true if the given value exists in the given table; otherwise, false.
--- @param t             The table.
--- @param value         The value to check for.
--- @return              True if the value exists in the table; otherwise, false.
+-- @param t         The table.
+-- @param value     The value to check for.
+-- @return          True if the value exists in the table; otherwise, false.
 --------------------------------------------------------------------------------
 function utility.table.contains(t, value)
-    for i, v in pairs(t) do
+    for k, v in pairs(t) do
         if v == value then
             return true
         end
     end
     
     return false
+end
+
+--------------------------------------------------------------------------------
+-- Copies all the values from the first table into the second table.
+-- @param a     The table to copy from.
+-- @param b     The table to copy to.
+--------------------------------------------------------------------------------
+function utility.table.copy(a, b)
+    for k in pairs(a) do
+        b[k] = a[k]
+    end
 end
 
 --------------------------------------------------------------------------------
