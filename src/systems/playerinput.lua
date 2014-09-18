@@ -3,19 +3,30 @@ local PlayerInputSystem = {}
 
 --------------------------------------------------------------------------------
 -- The player input system checks for player input and generates actions based
--- on those inputs.
+-- on those inputs
+--
+-- Uses the following components:
+--  * playerInput
+--  * actions
 --------------------------------------------------------------------------------
 function PlayerInputSystem:update(dt)
-    local _G = setmetatable(_G, { __index = self })
+    local ecs               = self.ecs
+    local attackButton      = self.attackButton
+    local dropButton        = self.dropButton
+    local jumpButton        = self.jumpButton
+    local leftButton        = self.leftButton
+    local rightButton       = self.rightButton
+    local subweaponButton   = self.subweaponButton
     
     for entity in pairs(self.ecs:query("playerInput actions")) do
         local actions = entity.actions
         
         -- Check for input.
+        attackButton:update(dt)
+        dropButton:update(dt)
+        jumpButton:update(dt)
         leftButton:update(dt)
         rightButton:update(dt)
-        jumpButton:update(dt)
-        attackButton:update(dt)
         subweaponButton:update(dt)
         
         -- Check for movement. For each direction, if an opposing direction is 
@@ -37,8 +48,12 @@ function PlayerInputSystem:update(dt)
             leftButton:cancelDoublePress()
         end
         
+        -- Check for dropping down one-way floors.
+        if dropButton:pressed() then
+            actions.drop = true
+        
         -- Check for jumping.
-        if jumpButton:pressed() then
+        elseif jumpButton:pressed() then
             actions.jump = true
         elseif jumpButton:isDown() then
             actions.keepJumping = true
@@ -69,17 +84,20 @@ return function(ecs)
     -- The entity component system.
     self.ecs = ecs
     
+    -- The input button for attacking.
+    self.attackButton = InputCommand("x")
+    
+    -- The input button for dropping through one-way floors.
+    self.dropButton = InputCommand("down", "z")
+    
+    -- The input button for jumping.
+    self.jumpButton = InputCommand("z")
+    
     -- The input button for moving left or dashing left.
     self.leftButton = InputCommand("left")
     
     -- The input button for moving right or dashing right.
     self.rightButton = InputCommand("right")
-    
-    -- The input button for jumping.
-    self.jumpButton = InputCommand("z")
-    
-    -- The input button for attacking.
-    self.attackButton = InputCommand("x")
     
     -- The input button for using subweapons.
     self.subweaponButton = InputCommand("up", "x")
