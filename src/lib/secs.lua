@@ -20,27 +20,32 @@
 -- For full documentation, see
 -- https://github.com/ecbambrick/SimpleEntityComponentSystem/wiki
 --------------------------------------------------------------------------------
-local EntityComponentSystem = {}
+local module = {}
+local class  = {}
+
+setmetatable(module, { 
+    __call = function(_) return module.new() end 
+})
 
 --------------------------------------------------------------------------------
 -- Parses the given query for a list of component names and returns a table of
 -- those names. If a component name does not exist in the table of registered
 -- components, then an error is thrown.
--- @param queryString			The query to parse.
--- @param registeredComponents	The list of all registered components.
--- @return 						The table of component names.
+-- @param queryString           The query to parse.
+-- @param registeredComponents  The list of all registered components.
+-- @return                      The table of component names.
 --------------------------------------------------------------------------------
 local function parseQuery(queryString, registeredComponents)
-	local components = {}
-	
-	for componentName in queryString:gmatch("%S+") do
-		if not registeredComponents[componentName] then
-			error(componentName)
-		end
-		table.insert(components, componentName)
-	end
-	
-	return components
+    local components = {}
+    
+    for componentName in queryString:gmatch("%S+") do
+        if not registeredComponents[componentName] then
+            error(componentName)
+        end
+        table.insert(components, componentName)
+    end
+    
+    return components
 end
 
 --------------------------------------------------------------------------------
@@ -59,11 +64,11 @@ local function registerEntityWithGroup(entity, group)
         end
     end
     
-	if meetsRequirements then
-		group.entities[entity] = true
-	else
-		group.entities[entity] = nil
-	end
+    if meetsRequirements then
+        group.entities[entity] = true
+    else
+        group.entities[entity] = nil
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -94,27 +99,27 @@ end
 -- @param entity            The entity.
 -- @param componentName     The name of the component.
 -- @param newComponentData  The data to give to the component.
--- @return					The entity.
+-- @return                  The entity.
 --------------------------------------------------------------------------------
-function EntityComponentSystem:attach(entity, components)
-	for name, newComponentData in pairs(components) do
-		local defaultComponentData = self._components[name]
-		local component = {}
-		
-		-- Copy the default data into the component.
-		for k, v in pairs(defaultComponentData) do 
-			component[k] = v
-		end
-		
-		-- Copy the new data into the component.
-		for k, v in pairs(newComponentData) do
-			component[k] = v
-		end
-		
-		-- Attach the component to the entity
-		entity[name] = component
-		
-	end
+function class:attach(entity, components)
+    for name, newComponentData in pairs(components) do
+        local defaultComponentData = self._components[name]
+        local component = {}
+        
+        -- Copy the default data into the component.
+        for k, v in pairs(defaultComponentData) do 
+            component[k] = v
+        end
+        
+        -- Copy the new data into the component.
+        for k, v in pairs(newComponentData) do
+            component[k] = v
+        end
+        
+        -- Attach the component to the entity
+        entity[name] = component
+        
+    end
     
     -- Update the entity's groups.
     registerEntityWithGroups(entity, self._entityGroups)
@@ -123,7 +128,7 @@ end
 --------------------------------------------------------------------------------
 -- Delete and unregister all entities.
 --------------------------------------------------------------------------------
-function EntityComponentSystem:clear()
+function class:clear()
     for group in pairs(self._entityGroups) do
         group.entities = {}
     end
@@ -134,7 +139,7 @@ end
 -- @param name  The name of the component.
 -- @param data  The data for the component (i.e. { x = 0, y = 0 }).
 --------------------------------------------------------------------------------
-function EntityComponentSystem:Component(name, data)
+function class:Component(name, data)
     self._components[name] = data or {}
 end
 
@@ -142,9 +147,11 @@ end
 -- Deletes and unregisters the given entity.
 -- @param entity    The entity.
 --------------------------------------------------------------------------------
-function EntityComponentSystem:delete(entity)
+function class:delete(entity)
     for component in pairs(entity) do
-        -- This is faster than calling detach() on each component.
+        -- This is faster than calling detach() on each component. Since 
+        -- detach() updates the entity's groups, you can skip this step until 
+        -- after all components have been removed.
         entity[component] = nil
     end
     
@@ -158,7 +165,7 @@ end
 -- @param ...       The list of component names to remove.
 -- @return          The table of components that were removed.
 --------------------------------------------------------------------------------
-function EntityComponentSystem:detach(entity, ...)
+function class:detach(entity, ...)
     local removedComponents = {}
     
     for _, component in ipairs({...}) do
@@ -174,7 +181,7 @@ end
 --------------------------------------------------------------------------------
 -- Call each active render system.
 --------------------------------------------------------------------------------
-function EntityComponentSystem:draw()
+function class:draw()
     for _, system in pairs(self._renderSystems) do
         if system.isActive then
             system:draw()
@@ -188,44 +195,44 @@ end
 --              set of data (i.e. { "pos", { x = 1, y =1 } }, { "player" }).
 -- @return      The newly created entity
 --------------------------------------------------------------------------------
-function EntityComponentSystem:Entity(...)
-	local entity = {}
+function class:Entity(...)
+    local entity = {}
 
-	if ... then
-		self:attach(entity, ...)
-	else
-		registerEntityWithGroups(entity, self._entityGroups)
-	end
-	
-	return entity
+    if ... then
+        self:attach(entity, ...)
+    else
+        registerEntityWithGroups(entity, self._entityGroups)
+    end
+    
+    return entity
 end
 
 --------------------------------------------------------------------------------
 -- Return the list of entities that satisfy the given query, or a list of all
 -- entities if no query is given.
--- @param queryString		A whitespace-separated string of component names.
--- @return              	The list of entities.
+-- @param queryString       A whitespace-separated string of component names.
+-- @return                  The list of entities.
 --------------------------------------------------------------------------------
-function EntityComponentSystem:query(queryString)
-	local queryString = queryString or "all"
+function class:query(queryString)
+    local queryString = queryString or "all"
 
-	if not self._entityGroups[queryString] then
-		local components = parseQuery(queryString, self._components)
-		local groups = self._entityGroups
-		groups[queryString] = { components = components, entities = {} }
-		registerEntitiesWithGroup(groups.all.entities, groups[queryString])    
-	end
-	
+    if not self._entityGroups[queryString] then
+        local components = parseQuery(queryString, self._components)
+        local groups = self._entityGroups
+        groups[queryString] = { components = components, entities = {} }
+        registerEntitiesWithGroup(groups.all.entities, groups[queryString])    
+    end
+    
     return self._entityGroups[queryString].entities
 end
 
 --------------------------------------------------------------------------------
 -- Return the first entity that satisfies the given query.
--- @param queryString		A whitespace-separated string of component names.
--- @return              	The first entity that satisfies the query or nil
---							if no entity is found.
+-- @param queryString       A whitespace-separated string of component names.
+-- @return                  The first entity that satisfies the query or nil
+--                          if no entity is found.
 --------------------------------------------------------------------------------
-function EntityComponentSystem:queryFirst(queryString)
+function class:queryFirst(queryString)
     return next(self:query(queryString))
 end
 
@@ -235,17 +242,23 @@ end
 -- @param name      The name of the system.
 -- @param callback  The callback function for the system.
 --------------------------------------------------------------------------------
-function EntityComponentSystem:System(name, system)
-	if system.isActive == nil then system.isActive = true end
-	if system.update then table.insert(self._updateSystems, system) end
-	if system.draw   then table.insert(self._renderSystems, system) end
+function class:System(name, system)
+    if system.isActive == nil then
+        system.isActive = true
+    end
+    if system.update then
+        table.insert(self._updateSystems, system)
+    end
+    if system.draw then 
+        table.insert(self._renderSystems, system)
+    end
 end
 
 --------------------------------------------------------------------------------
 -- Call each active update system.
 -- @param dt    The delta time of the game loop.
 --------------------------------------------------------------------------------
-function EntityComponentSystem:update(dt)
+function class:update(dt)
     for _, system in pairs(self._updateSystems) do
         if system.isActive then
             system:update(dt)
@@ -257,7 +270,7 @@ end
 -- Constructs a new instance of the entity component system.
 -- @return A new instance of the entity component system.
 --------------------------------------------------------------------------------
-return function()
+function module.new()
     local self = {}
     
     -- The table of components. The key is the component name and each value
@@ -265,9 +278,9 @@ return function()
     self._components = {}
     
     -- The table of entity groups. Each group is used as a cache for query 
-	-- results. The key is the query that the group belongs to and each value
-	-- contains a table of components from the query and a table entities that
-	-- satisfy the query. The group named "all" contains all entities.
+    -- results. The key is the query that the group belongs to and each value
+    -- contains a table of components from the query and a table entities that
+    -- satisfy the query. The group named "all" contains all entities.
     self._entityGroups = {}
     self._entityGroups.all = { components = {}, entities = {} }
     
@@ -279,5 +292,9 @@ return function()
     -- contains a tables of systems properties.
     self._updateSystems = {}
     
-    return setmetatable(self, { __index = EntityComponentSystem })
+    return setmetatable(self, { 
+		__index = class
+	})
 end
+
+return module
